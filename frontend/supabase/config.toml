@@ -1,0 +1,10 @@
+project_id = "pdnbvhyljifrfyrlkshq"
+
+[functions.diagnose]
+verify_jwt = false
+
+[functions.analyze]
+verify_jwt = false
+
+[functions.keys]
+verify_jwt = true
