@@ -20,6 +20,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'users',
+    'champs',
+    'plantes',
+    'journal',
+    'etude_sol',
+    'type_user',
 ]
 
 # Middlewares exécutés à chaque requête
