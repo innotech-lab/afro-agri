@@ -1,9 +1,12 @@
-# Fichier de configuration des URLs du projet afroagri
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 
-# Liste des routes URL disponibles dans l'application
 urlpatterns = [
-    # Route vers l'interface d'administration Django
     path('admin/', admin.site.urls),
+    path('api/type-users/', include('type_user.urls')),
+    path('api/users/', include('users.urls')),
+    path('api/champs/', include('champs.urls')),
+    path('api/plantes/', include('plantes.urls')),
+    path('api/journal/', include('journal.urls')),
+    path('api/etude-sol/', include('etude_sol.urls')),
 ]
