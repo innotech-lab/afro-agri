@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 05, 2026 at 04:05 PM
+-- Generation Time: Jun 05, 2026 at 05:09 PM
 -- Server version: 10.4.24-MariaDB
 -- PHP Version: 7.4.29
 
@@ -30,24 +30,11 @@ SET time_zone = "+00:00";
 CREATE TABLE `champs` (
   `id_champ` int(11) NOT NULL,
   `superficie` float DEFAULT NULL,
-  `source_eau` enum('Forage','Pluie','Irrigation','Riviere') NOT NULL,
+  `source_eau` enum('Forage','pluie','Irrigation','Reviere') NOT NULL,
   `longitude` float NOT NULL,
   `latitude` float NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `update_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `django_migrations`
---
-
-CREATE TABLE `django_migrations` (
-  `id` int(11) NOT NULL,
-  `app` varchar(255) NOT NULL,
-  `name` varchar(255) NOT NULL,
-  `applied` datetime(6) NOT NULL
+  `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
@@ -59,18 +46,18 @@ CREATE TABLE `django_migrations` (
 CREATE TABLE `etude_sol` (
   `id_etude_sol` int(11) NOT NULL,
   `id_champ` int(11) NOT NULL,
-  `date_analyse` date NOT NULL,
-  `ph_sol` varchar(100) NOT NULL,
-  `matiere_organique` varchar(100) NOT NULL,
-  `azote` varchar(100) NOT NULL,
-  `phosphore` varchar(100) NOT NULL,
-  `potassium` varchar(100) NOT NULL,
-  `humidite` varchar(100) NOT NULL,
-  `type_sol` varchar(100) NOT NULL,
-  `fertilite` varchar(100) NOT NULL,
-  `rapport_analyse` varchar(100) NOT NULL,
-  `created_at` varchar(100) NOT NULL,
-  `updated_at` varchar(100) NOT NULL
+  `date` date NOT NULL,
+  `py_sol` varchar(50) NOT NULL,
+  `matiere_organique` varchar(150) NOT NULL,
+  `azote` varchar(50) NOT NULL,
+  `phosphore` varchar(150) NOT NULL,
+  `potassium` varchar(150) NOT NULL,
+  `humidite` varchar(150) NOT NULL,
+  `type_sol` varchar(180) NOT NULL,
+  `fertilite` varchar(50) NOT NULL,
+  `rapport_analyse` varchar(200) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
@@ -83,7 +70,7 @@ CREATE TABLE `journal_plante` (
   `id_journal` int(11) NOT NULL,
   `id_plante` int(11) NOT NULL,
   `date_observation` date NOT NULL DEFAULT current_timestamp(),
-  `stade_croissance` varchar(100) NOT NULL,
+  `stade_croissance` varchar(150) NOT NULL,
   `symptomes` varchar(150) NOT NULL,
   `ravageur_suspecte` varchar(150) NOT NULL,
   `maladie_suspecte` varchar(150) NOT NULL,
@@ -92,7 +79,7 @@ CREATE TABLE `journal_plante` (
   `longitude` float NOT NULL,
   `latitude` float NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` datetime DEFAULT NULL
+  `updated_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
@@ -104,11 +91,11 @@ CREATE TABLE `journal_plante` (
 CREATE TABLE `plantes` (
   `id_plante` int(11) NOT NULL,
   `nom_plante` varchar(50) NOT NULL,
-  `variete` varchar(50) NOT NULL,
-  `date_plantation` date NOT NULL,
+  `variete` date NOT NULL,
   `id_champ` int(11) NOT NULL,
+  `date_plantation` date NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `updated_at` datetime NOT NULL
+  `update_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
@@ -122,6 +109,13 @@ CREATE TABLE `type_user` (
   `type` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+--
+-- Dumping data for table `type_user`
+--
+
+INSERT INTO `type_user` (`id_type`, `type`) VALUES
+(1, 'admin');
+
 -- --------------------------------------------------------
 
 --
@@ -130,7 +124,7 @@ CREATE TABLE `type_user` (
 
 CREATE TABLE `users` (
   `id_user` int(11) NOT NULL,
-  `nom` varchar(50) DEFAULT NULL,
+  `nom` varchar(50) NOT NULL,
   `prenom` varchar(50) NOT NULL,
   `id_type` int(11) NOT NULL,
   `email` varchar(50) NOT NULL,
@@ -138,6 +132,13 @@ CREATE TABLE `users` (
   `created_date` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `update_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`id_user`, `nom`, `prenom`, `id_type`, `email`, `password`, `created_date`, `update_at`) VALUES
+(1, 'admin', 'kithub', 1, 'admin@kit-hub.com', 'password', '2026-06-05 15:05:51', NULL);
 
 --
 -- Indexes for dumped tables
@@ -150,16 +151,11 @@ ALTER TABLE `champs`
   ADD PRIMARY KEY (`id_champ`);
 
 --
--- Indexes for table `django_migrations`
---
-ALTER TABLE `django_migrations`
-  ADD PRIMARY KEY (`id`);
-
---
 -- Indexes for table `etude_sol`
 --
 ALTER TABLE `etude_sol`
-  ADD PRIMARY KEY (`id_etude_sol`);
+  ADD PRIMARY KEY (`id_etude_sol`),
+  ADD KEY `bec` (`id_champ`);
 
 --
 -- Indexes for table `journal_plante`
@@ -187,7 +183,7 @@ ALTER TABLE `type_user`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id_user`),
-  ADD KEY `danny` (`id_type`);
+  ADD KEY `cutu` (`id_type`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -198,12 +194,6 @@ ALTER TABLE `users`
 --
 ALTER TABLE `champs`
   MODIFY `id_champ` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `django_migrations`
---
-ALTER TABLE `django_migrations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `etude_sol`
@@ -227,17 +217,23 @@ ALTER TABLE `plantes`
 -- AUTO_INCREMENT for table `type_user`
 --
 ALTER TABLE `type_user`
-  MODIFY `id_type` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_type` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id_user` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id_user` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `etude_sol`
+--
+ALTER TABLE `etude_sol`
+  ADD CONSTRAINT `bec` FOREIGN KEY (`id_champ`) REFERENCES `champs` (`id_champ`);
 
 --
 -- Constraints for table `journal_plante`
@@ -256,7 +252,7 @@ ALTER TABLE `plantes`
 -- Constraints for table `users`
 --
 ALTER TABLE `users`
-  ADD CONSTRAINT `danny` FOREIGN KEY (`id_type`) REFERENCES `type_user` (`id_type`);
+  ADD CONSTRAINT `cutu` FOREIGN KEY (`id_type`) REFERENCES `type_user` (`id_type`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
