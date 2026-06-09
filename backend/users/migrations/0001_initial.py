@@ -19,7 +19,7 @@ class Migration(migrations.Migration):
                 ('prenom', models.CharField(max_length=50)),
                 ('email', models.CharField(max_length=50, unique=True)),
                 ('password', models.CharField(max_length=200)),
-                ('created_date', models.DateTimeField(auto_now=True)),
+                ('created_at', models.DateTimeField(auto_now=True)),
                 ('update_at', models.DateTimeField(blank=True, null=True)),
             ],
             options={

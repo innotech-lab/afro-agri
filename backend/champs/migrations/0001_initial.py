@@ -20,7 +20,7 @@ class Migration(migrations.Migration):
                 ('longitude', models.FloatField()),
                 ('latitude', models.FloatField()),
                 ('created_at', models.DateTimeField(auto_now=True)),
-                ('update_at', models.DateTimeField(blank=True, null=True)),
+                ('updated_at', models.DateTimeField(blank=True, null=True)),
             ],
             options={
                 'db_table': 'champs',
