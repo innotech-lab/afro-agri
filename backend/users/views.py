@@ -4,6 +4,183 @@ from rest_framework.decorators import action
 from django.contrib.auth.hashers import make_password
 from .models import User
 from .serializers import UserSerializer
+from rest_framework.views import APIView
+from django.contrib.auth.hashers import check_password
+from django.db.models import Count, Avg
+
+
+class LoginView(APIView):
+    """Authenticate a user and store `user_id` and `id_type` in session."""
+
+    def post(self, request):
+        email = request.data.get('email')
+        password = request.data.get('password')
+
+        if not email or not password:
+            return Response({'error': 'email and password required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        if not check_password(password, user.password):
+            return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Set session values so permissions can read them
+        if hasattr(request, 'session'):
+            request.session['user_id'] = user.id_user
+            request.session['id_type'] = getattr(user.id_type, 'type', '')
+
+        return Response({'message': 'Authenticated', 'user_id': user.id_user, 'id_type': getattr(user.id_type, 'type', '')})
+
+
+class LogoutView(APIView):
+    def post(self, request):
+        if hasattr(request, 'session'):
+            request.session.flush()
+        return Response({'message': 'Logged out'})
+
+
+class DashboardMinisterView(APIView):
+    """Read-only dashboard for Minister users. Requires session login.
+
+    Returns basic counts for key models.
+    """
+
+    def get(self, request):
+        id_type = request.session.get('id_type') if hasattr(request, 'session') else None
+        if not id_type or str(id_type).strip().lower() != 'minister':
+            return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+
+        # Import models lazily to avoid circular imports at module load
+        from champs.models import Champ
+        from plantes.models import Plante
+        from journal.models import JournalPlante
+        from etude_sol.models import EtudeSol
+        from users.models import User
+
+        # Basic counts
+        champs_qs = Champ.objects.all()
+        plantes_qs = Plante.objects.all()
+        journal_qs = JournalPlante.objects.all()
+        etude_qs = EtudeSol.objects.all()
+        users_qs = User.objects.all()
+
+        # Aggregated stats
+        champs_by_source = list(champs_qs.values('source_eau').annotate(count=Count('id_champ')))
+        avg_superficie = champs_qs.aggregate(avg_superficie=Avg('superficie'))['avg_superficie']
+
+        plantes_by_variete = list(plantes_qs.values('variete').annotate(count=Count('id_plante')))
+        plantes_by_nom = list(plantes_qs.values('nom_plante').annotate(count=Count('id_plante')))
+
+        journal_by_stade = list(journal_qs.values('stade_croissance').annotate(count=Count('id_journal')))
+        recent_journal = list(journal_qs.order_by('-date_observation')[:5].values('id_journal','id_plante_id','date_observation','stade_croissance','symptomes'))
+
+        etude_by_type = list(etude_qs.values('type_sol').annotate(count=Count('id_etude_sol')))
+        etude_by_fert = list(etude_qs.values('fertilite').annotate(count=Count('id_etude_sol')))
+
+        users_by_type = list(users_qs.values('id_type__type').annotate(count=Count('id_user')))
+
+        data = {
+            'id_type': id_type,
+            'counts': {
+                'champs': champs_qs.count(),
+                'plantes': plantes_qs.count(),
+                'journal': journal_qs.count(),
+                'etude_sol': etude_qs.count(),
+                'users': users_qs.count(),
+            },
+            'champs': {
+                'by_source_eau': champs_by_source,
+                'avg_superficie': avg_superficie,
+            },
+            'plantes': {
+                'by_variete': plantes_by_variete,
+                'by_nom': plantes_by_nom,
+            },
+            'journal': {
+                'by_stade': journal_by_stade,
+                'recent': recent_journal,
+            },
+            'etude_sol': {
+                'by_type_sol': etude_by_type,
+                'by_fertilite': etude_by_fert,
+            },
+            'users': {
+                'by_type': users_by_type,
+            }
+        }
+
+        return Response(data)
+
+
+class DashboardAdminView(APIView):
+    """Full admin dashboard with modification access in the backend."""
+
+    def get(self, request):
+        id_type = request.session.get('id_type') if hasattr(request, 'session') else None
+        if not id_type or str(id_type).strip().lower() != 'admin':
+            return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+
+        from champs.models import Champ
+        from plantes.models import Plante
+        from journal.models import JournalPlante
+        from etude_sol.models import EtudeSol
+        from users.models import User
+
+        champs_qs = Champ.objects.all()
+        plantes_qs = Plante.objects.all()
+        journal_qs = JournalPlante.objects.all()
+        etude_qs = EtudeSol.objects.all()
+        users_qs = User.objects.all()
+
+        champs_by_source = list(champs_qs.values('source_eau').annotate(count=Count('id_champ')))
+        avg_superficie = champs_qs.aggregate(avg_superficie=Avg('superficie'))['avg_superficie']
+
+        plantes_by_variete = list(plantes_qs.values('variete').annotate(count=Count('id_plante')))
+        plantes_by_nom = list(plantes_qs.values('nom_plante').annotate(count=Count('id_plante')))
+
+        journal_by_stade = list(journal_qs.values('stade_croissance').annotate(count=Count('id_journal')))
+        recent_journal = list(journal_qs.order_by('-date_observation')[:10].values('id_journal','id_plante_id','date_observation','stade_croissance','symptomes'))
+
+        etude_by_type = list(etude_qs.values('type_sol').annotate(count=Count('id_etude_sol')))
+        etude_by_fert = list(etude_qs.values('fertilite').annotate(count=Count('id_etude_sol')))
+
+        users_by_type = list(users_qs.values('id_type__type').annotate(count=Count('id_user')))
+
+        data = {
+            'id_type': id_type,
+            'counts': {
+                'champs': champs_qs.count(),
+                'plantes': plantes_qs.count(),
+                'journal': journal_qs.count(),
+                'etude_sol': etude_qs.count(),
+                'users': users_qs.count(),
+            },
+            'champs': {
+                'by_source_eau': champs_by_source,
+                'avg_superficie': avg_superficie,
+            },
+            'plantes': {
+                'by_variete': plantes_by_variete,
+                'by_nom': plantes_by_nom,
+            },
+            'journal': {
+                'by_stade': journal_by_stade,
+                'recent': recent_journal,
+            },
+            'etude_sol': {
+                'by_type_sol': etude_by_type,
+                'by_fertilite': etude_by_fert,
+            },
+            'users': {
+                'by_type': users_by_type,
+            }
+        }
+
+        return Response(data)
+
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()

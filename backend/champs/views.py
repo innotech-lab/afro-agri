@@ -5,8 +5,12 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import Champ
 from .serializers import ChampSerializer
+from users.permissions import MinisterCannotModify
+
+
 
 class ChampListCreateView(APIView):
+    permission_classes = [MinisterCannotModify]
     def get(self, request):
         champs = Champ.objects.all()
         return Response(ChampSerializer(champs, many=True).data)
@@ -19,6 +23,7 @@ class ChampListCreateView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ChampDetailView(APIView):
+    permission_classes = [MinisterCannotModify]
     def get_object(self, id_champ):
         return get_object_or_404(Champ, id_champ=id_champ)
 
