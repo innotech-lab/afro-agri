@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'journal',
     'etude_sol',
     'type_user',
+    'diagnostic',
 ]
 
 # Middlewares exécutés à chaque requête
@@ -47,7 +48,10 @@ ROOT_URLCONF = 'afroagri.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [r'C:\Python\Lib\site-packages\rest_framework\templates'],
+        'DIRS': [
+            r'C:\Python\Lib\site-packages\rest_framework\templates',
+            BASE_DIR / 'templates',
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -99,3 +103,16 @@ USE_TZ = True
 
 # URL pour les fichiers statiques (CSS, JS, images)
 STATIC_URL = 'static/'
+
+# Fichiers médias (images uploadées)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# URL open source GitHub - Open Plant Pathology (maladies des plantes)
+GITHUB_PLANT_DISEASE_URL = 'https://raw.githubusercontent.com/openplantpathology/OpenPlantPathology/main/README.md'
+
+# API GitHub pour rechercher des repos sur les maladies des plantes
+GITHUB_API_PLANT_DISEASE = 'https://api.github.com/search/repositories?q=plant+disease+dataset&sort=stars&per_page=5'
+
+# Dataset maladies plantes (Kaggle open source mirror sur GitHub)
+PLANT_DISEASE_DATASET_URL = 'https://raw.githubusercontent.com/spMohanty/PlantVillage-Dataset/master/README.md'

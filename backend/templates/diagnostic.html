@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AfroAgri - Diagnostic Plante</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f4f0;
+            color: #333;
+        }
+
+        header {
+            background: #2e7d32;
+            color: white;
+            padding: 16px 20px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 24px auto;
+            padding: 0 16px;
+        }
+
+        /* --- FORMULAIRE --- */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .card h3 {
+            color: #2e7d32;
+            margin-bottom: 14px;
+            font-size: 16px;
+        }
+
+        input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            margin-bottom: 10px;
+        }
+
+        /* --- CAMERA --- */
+        #camera-section { text-align: center; }
+
+        #video {
+            width: 100%;
+            border-radius: 10px;
+            background: #000;
+            display: none;
+        }
+
+        #canvas { display: none; }
+
+        #preview {
+            width: 100%;
+            border-radius: 10px;
+            display: none;
+            border: 3px solid #2e7d32;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            min-width: 120px;
+        }
+
+        .btn-green  { background: #2e7d32; color: white; }
+        .btn-orange { background: #e65100; color: white; }
+        .btn-blue   { background: #1565c0; color: white; }
+        .btn-grey   { background: #9e9e9e; color: white; }
+        .btn:disabled { background: #ccc; cursor: not-allowed; }
+
+        /* Upload alternatif */
+        .upload-label {
+            display: block;
+            padding: 12px;
+            background: #e8f5e9;
+            border: 2px dashed #2e7d32;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            font-size: 14px;
+            color: #2e7d32;
+            margin-top: 10px;
+        }
+
+        #file-input { display: none; }
+
+        /* --- LOADER --- */
+        #loader {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            width: 48px; height: 48px;
+            border: 5px solid #e0e0e0;
+            border-top-color: #2e7d32;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* --- RESULTAT --- */
+        #result { display: none; }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .result-icon { font-size: 40px; }
+
+        .result-title { font-size: 20px; font-weight: bold; }
+
+        .result-subtitle { font-size: 13px; color: #666; margin-top: 2px; }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+
+        .info-row:last-child { border-bottom: none; }
+
+        .info-label { color: #888; }
+        .info-value { font-weight: bold; max-width: 60%; text-align: right; }
+
+        .confiance-bar {
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            margin-top: 6px;
+            overflow: hidden;
+        }
+
+        .confiance-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: #2e7d32;
+            transition: width 1s ease;
+        }
+
+        .traitement-box {
+            background: #e8f5e9;
+            border-left: 4px solid #2e7d32;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-top: 4px;
+            line-height: 1.5;
+        }
+
+        .saine-box {
+            background: #e3f2fd;
+            border-left: 4px solid #1565c0;
+        }
+
+        .github-link {
+            display: inline-block;
+            margin-top: 8px;
+            color: #1565c0;
+            font-size: 13px;
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        .github-link:hover { text-decoration: underline; }
+
+        .btn-retry {
+            width: 100%;
+            margin-top: 16px;
+            padding: 12px;
+            background: #2e7d32;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .error-box {
+            background: #ffebee;
+            border-left: 4px solid #c62828;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #c62828;
+        }
+
+        .tag-saine  { color: #2e7d32; }
+        .tag-malade { color: #e65100; }
+    </style>
+</head>
+<body>
+
+<header>🌿 AfroAgri — Diagnostic Plante</header>
+
+<div class="container">
+
+    <!-- FORMULAIRE -->
+    <div class="card" id="form-section">
+        <h3>📋 Informations de la plante</h3>
+        <input type="text"   id="nom-plante"  placeholder="Nom de la plante (ex: tomate)">
+        <input type="text"   id="stade"       placeholder="Stade de croissance (ex: floraison)">
+        <div id="journal-status"></div>
+    </div>
+
+    <!-- CAMERA -->
+    <div class="card" id="camera-section">
+        <h3>📷 Capturer la plante</h3>
+
+        <video id="video" autoplay playsinline></video>
+        <canvas id="canvas"></canvas>
+        <img id="preview" alt="Photo capturée">
+
+        <div class="btn-row">
+            <button class="btn btn-green" id="btn-start">📷 Ouvrir caméra</button>
+            <button class="btn btn-orange" id="btn-capture" disabled>🔴 Capturer</button>
+            <button class="btn btn-grey" id="btn-retry-cam" style="display:none">🔄 Reprendre</button>
+        </div>
+
+        <label class="upload-label" for="file-input">
+            📁 Ou choisir une image depuis la galerie
+        </label>
+        <input type="file" id="file-input" accept="image/*" capture="environment">
+
+        <div class="btn-row" style="margin-top: 16px;">
+            <button class="btn btn-blue" id="btn-analyser" disabled>🔬 Analyser la plante</button>
+        </div>
+    </div>
+
+    <!-- LOADER -->
+    <div class="card" id="loader">
+        <div class="spinner"></div>
+        <p style="color:#555; font-size:14px;">Analyse en cours...<br>Consultation de l'IA et GitHub</p>
+    </div>
+
+    <!-- RESULTAT -->
+    <div class="card" id="result"></div>
+
+</div>
+
+<script>
+    const video      = document.getElementById('video');
+    const canvas     = document.getElementById('canvas');
+    const preview    = document.getElementById('preview');
+    const btnStart   = document.getElementById('btn-start');
+    const btnCapture = document.getElementById('btn-capture');
+    const btnRetryCam= document.getElementById('btn-retry-cam');
+    const btnAnalyser= document.getElementById('btn-analyser');
+    const fileInput  = document.getElementById('file-input');
+    const loader     = document.getElementById('loader');
+    const resultDiv  = document.getElementById('result');
+
+    let stream = null;
+    let capturedBlob = null;
+    let journalId = null;
+
+    // --- Ouvrir la caméra ---
+    btnStart.addEventListener('click', async () => {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment', width: 1280, height: 720 }
+            });
+            video.srcObject = stream;
+            video.style.display = 'block';
+            preview.style.display = 'none';
+            btnCapture.disabled = false;
+            btnStart.style.display = 'none';
+            btnRetryCam.style.display = 'none';
+            btnAnalyser.disabled = true;
+            capturedBlob = null;
+        } catch (e) {
+            alert('Caméra non disponible : ' + e.message);
+        }
+    });
+
+    // --- Capturer la photo ---
+    btnCapture.addEventListener('click', () => {
+        canvas.width  = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+
+        canvas.toBlob(blob => {
+            capturedBlob = blob;
+            preview.src = URL.createObjectURL(blob);
+            preview.style.display = 'block';
+            video.style.display = 'none';
+
+            // Arrêter le stream
+            if (stream) stream.getTracks().forEach(t => t.stop());
+
+            btnCapture.disabled = true;
+            btnRetryCam.style.display = 'inline-flex';
+            btnAnalyser.disabled = false;
+        }, 'image/jpeg', 0.9);
+    });
+
+    // --- Reprendre la caméra ---
+    btnRetryCam.addEventListener('click', () => {
+        preview.style.display = 'none';
+        btnStart.style.display = 'inline-flex';
+        btnRetryCam.style.display = 'none';
+        btnAnalyser.disabled = true;
+        capturedBlob = null;
+        resultDiv.style.display = 'none';
+        resultDiv.innerHTML = '';
+    });
+
+    // --- Upload depuis galerie ---
+    fileInput.addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        capturedBlob = file;
+        preview.src = URL.createObjectURL(file);
+        preview.style.display = 'block';
+        video.style.display = 'none';
+        if (stream) stream.getTracks().forEach(t => t.stop());
+        btnAnalyser.disabled = false;
+        btnCapture.disabled = true;
+        btnRetryCam.style.display = 'inline-flex';
+    });
+
+    // --- Creer le journal automatiquement ---
+    async function creerJournal() {
+        const nomPlante = document.getElementById('nom-plante').value || 'plante inconnue';
+        const stade     = document.getElementById('stade').value || 'non renseigne';
+
+        try {
+            const resp = await fetch('http://127.0.0.1:8000/api/journal/quick-create/', {
+                method : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body   : JSON.stringify({ nom_plante: nomPlante, stade: stade })
+            });
+            const data = await resp.json();
+            if (!resp.ok) {
+                afficherErreur('Erreur creation journal : ' + (data.error || JSON.stringify(data)));
+                return null;
+            }
+            document.getElementById('journal-status').innerHTML =
+                `<div style="color:#2e7d32;font-size:13px;margin-top:4px;">Journal #${data.id_journal} cree</div>`;
+            return data.id_journal;
+        } catch(e) {
+            afficherErreur('Serveur inaccessible.');
+            return null;
+        }
+    }
+
+    // --- Analyser ---
+    btnAnalyser.addEventListener('click', async () => {
+        if (!capturedBlob) { alert('Veuillez capturer ou choisir une image.'); return; }
+
+        // Afficher loader
+        loader.style.display = 'block';
+        resultDiv.style.display = 'none';
+        resultDiv.innerHTML = '';
+        btnAnalyser.disabled = true;
+
+        // Créer le journal si pas encore fait
+        if (!journalId) {
+            journalId = await creerJournal();
+            if (!journalId) {
+                loader.style.display = 'none';
+                btnAnalyser.disabled = false;
+                return;
+            }
+        }
+
+        const formData = new FormData();
+        formData.append('image', capturedBlob, 'plante.jpg');
+        formData.append('id_journal', journalId);
+        formData.append('nom_plante', document.getElementById('nom-plante').value || '');
+
+        try {
+            const resp = await fetch('http://127.0.0.1:8000/api/diagnostic/analyser/', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await resp.json();
+            loader.style.display = 'none';
+            if (!resp.ok) { afficherErreur(data.error || 'Erreur serveur.'); return; }
+            afficherResultat(data.details, preview.src);
+        } catch (e) {
+            loader.style.display = 'none';
+            afficherErreur('Impossible de contacter le serveur.');
+        }
+        btnAnalyser.disabled = false;
+    });
+
+    // --- Afficher le résultat ---
+    function afficherResultat(d, imgSrc) {
+        const estSaine = d.est_saine;
+        const confiance = parseFloat(d.confiance_pct) || 0;
+        const couleurBar = confiance > 70 ? '#2e7d32' : confiance > 40 ? '#f57c00' : '#c62828';
+        const github = d.source_open_source || {};
+
+        resultDiv.innerHTML = `
+            <div class="result-header">
+                <div class="result-icon">${estSaine ? '✅' : '🔴'}</div>
+                <div>
+                    <div class="result-title ${estSaine ? 'tag-saine' : 'tag-malade'}">
+                        ${estSaine ? 'Plante Saine' : 'Maladie Détectée'}
+                    </div>
+                    <div class="result-subtitle">${d.plante_detectee || ''}</div>
+                </div>
+            </div>
+
+            <img src="${imgSrc}" style="width:100%;border-radius:8px;margin-bottom:16px;">
+
+            <div class="info-row">
+                <span class="info-label">Maladie</span>
+                <span class="info-value">${d.maladie || 'Aucune'}</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Confiance IA</span>
+                <span class="info-value">${d.confiance_pct}</span>
+            </div>
+            <div class="confiance-bar">
+                <div class="confiance-fill" style="width:${confiance}%;background:${couleurBar};"></div>
+            </div>
+
+            <div class="info-row" style="margin-top:12px;">
+                <span class="info-label">Traitement</span>
+            </div>
+            <div class="traitement-box ${estSaine ? 'saine-box' : ''}">
+                ${d.traitement || 'Consulter un agronome.'}
+            </div>
+
+            ${github.url ? `
+            <div class="info-row" style="margin-top:12px;">
+                <span class="info-label">Source GitHub</span>
+            </div>
+            <div style="font-size:13px; color:#555; margin-top:4px;">
+                ${github.nom || ''}
+                <br>
+                <a class="github-link" href="${github.url}" target="_blank">${github.url}</a>
+                ${github.autres_sources && github.autres_sources.length ? `
+                    <br><br><strong>Autres sources :</strong>
+                    ${github.autres_sources.map(s =>
+                        `<br><a class="github-link" href="${s.url}" target="_blank">${s.nom}</a>`
+                    ).join('')}
+                ` : ''}
+            </div>` : ''}
+
+            <button class="btn-retry" onclick="recommencer()">🔄 Nouveau diagnostic</button>
+        `;
+
+        resultDiv.style.display = 'block';
+        resultDiv.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function afficherErreur(msg) {
+        resultDiv.innerHTML = `<div class="error-box">❌ ${msg}</div>`;
+        resultDiv.style.display = 'block';
+    }
+
+    function recommencer() {
+        capturedBlob = null;
+        journalId = null;
+        preview.style.display = 'none';
+        preview.src = '';
+        resultDiv.style.display = 'none';
+        resultDiv.innerHTML = '';
+        document.getElementById('journal-status').innerHTML = '';
+        btnStart.style.display = 'inline-flex';
+        btnCapture.disabled = true;
+        btnRetryCam.style.display = 'none';
+        btnAnalyser.disabled = true;
+        fileInput.value = '';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+</script>
+
+</body>
+</html>
