@@ -75,9 +75,6 @@ DATABASES = {
         'PASSWORD': '',                          # Mot de passe MySQL
         'HOST': 'localhost',                     # Hôte de la base de données
         'PORT': '3306',                          # Port MySQL par défaut
-        'OPTIONS': {
-            'sql_mode': 'STRICT_TRANS_TABLES',   # Active le mode strict pour l'intégrité des données
-        },
     }
 }
 

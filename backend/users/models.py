@@ -9,8 +9,8 @@ class User(models.Model):
     id_type = models.ForeignKey(TypeUser, db_column='id_type', on_delete=models.CASCADE)
     email = models.CharField(max_length=50, unique=True)
     password = models.CharField(max_length=200)
-    created_date = models.DateTimeField(auto_now=True)
-    update_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_column='created_at')
+    updated_at = models.DateTimeField(db_column='update_at', auto_now=True, null=True, blank=True)
 
     class Meta:
         db_table = 'users'

@@ -13,8 +13,8 @@ class Champ(models.Model):
     source_eau = models.CharField(max_length=20, choices=SOURCE_EAU)
     longitude = models.FloatField()
     latitude = models.FloatField()
-    created_at = models.DateTimeField(auto_now=True)
-    update_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(db_column='created_at', auto_now=True)
+    updated_at = models.DateTimeField(db_column='updated_at', null=True, blank=True)
 
     class Meta:
         db_table = 'champs'
