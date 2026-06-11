@@ -10,7 +10,7 @@ SECRET_KEY = 'django-insecure-!)phz(w%u=#q@$ck!2szakryyr!3jx7d5#x!ddqu_v98$9)^=%
 DEBUG = True
 
 # Hôtes autorisés à accéder au serveur
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '*']
 
 # Applications installées dans le projet
 INSTALLED_APPS = [
@@ -21,6 +21,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'corsheaders',
     'users',
     'champs',
     'plantes',
@@ -33,6 +34,7 @@ INSTALLED_APPS = [
 # Middlewares exécutés à chaque requête
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -69,12 +71,13 @@ WSGI_APPLICATION = 'afroagri.wsgi.application'
 # Configuration de la base de données MySQL
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',  # Moteur MySQL
-        'NAME': 'afroagri',                     # Nom de la base de données
-        'USER': 'root',                          # Utilisateur MySQL
-        'PASSWORD': '',                          # Mot de passe MySQL
-        'HOST': 'localhost',                     # Hôte de la base de données
-        'PORT': '3306',                          # Port MySQL par défaut
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'afroagri',
+        'USER': 'root',
+        'PASSWORD': '',
+        'HOST': '127.0.0.1',
+        'PORT': '3306',
+        'OPTIONS': {'charset': 'utf8mb4'},
     }
 }
 
@@ -113,3 +116,6 @@ GITHUB_API_PLANT_DISEASE = 'https://api.github.com/search/repositories?q=plant+d
 
 # Dataset maladies plantes (Kaggle open source mirror sur GitHub)
 PLANT_DISEASE_DATASET_URL = 'https://raw.githubusercontent.com/spMohanty/PlantVillage-Dataset/master/README.md'
+
+# CORS - autoriser toutes les origines en développement
+CORS_ALLOW_ALL_ORIGINS = True

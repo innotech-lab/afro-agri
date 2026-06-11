@@ -1,13 +1,9 @@
 from django.contrib import admin
 from django.urls import path, include
-<<<<<<< HEAD
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
-=======
-from django.views.generic import RedirectView
 from users.views import DashboardMinisterView, DashboardAdminView
->>>>>>> 28fd6d689b8f054535d72e0a7159ef240fbe67fa
 
 urlpatterns = [
     path('admin/', admin.site.urls),

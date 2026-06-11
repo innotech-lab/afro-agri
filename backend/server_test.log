@@ -1,0 +1,235 @@
+Watching for file changes with StatReloader
+Not Found: /
+[11/Jun/2026 11:38:13] "GET / HTTP/1.1" 404 3567
+Not Found: /
+[11/Jun/2026 11:38:13] "GET / HTTP/1.1" 404 3567
+Not Found: /api/
+[11/Jun/2026 11:38:25] "GET /api/ HTTP/1.1" 404 3597
+[11/Jun/2026 11:38:43] "GET /diagnostic/ HTTP/1.1" 200 19579
+Internal Server Error: /api/journal/analyser-image/
+Traceback (most recent call last):
+  File "C:\Python\Lib\site-packages\django\db\backends\utils.py", line 87, in _execute
+    return self.cursor.execute(sql)
+           ~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Python\Lib\site-packages\django\db\backends\sqlite3\base.py", line 324, in execute
+    return super().execute(query)
+           ~~~~~~~~~~~~~~~^^^^^^^
+sqlite3.OperationalError: no such table: type_user
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Python\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Python\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Python\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Python\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Python\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Python\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Python\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\ABC\Documents\afro-agri\backend\journal\views.py", line 153, in post
+    cursor.execute('SELECT id_type FROM type_user LIMIT 1')
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python\Lib\site-packages\django\db\backends\utils.py", line 102, in execute
+    return super().execute(sql, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Python\Lib\site-packages\django\db\backends\utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Python\Lib\site-packages\django\db\backends\utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Python\Lib\site-packages\django\db\backends\utils.py", line 84, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Python\Lib\site-packages\django\db\backends\utils.py", line 87, in _execute
+    return self.cursor.execute(sql)
+           ~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Python\Lib\site-packages\django\db\backends\sqlite3\base.py", line 324, in execute
+    return super().execute(query)
+           ~~~~~~~~~~~~~~~^^^^^^^
+django.db.utils.OperationalError: no such table: type_user
+[11/Jun/2026 11:38:58] "POST /api/journal/analyser-image/ HTTP/1.1" 500 138836
+Method Not Allowed: /api/journal/analyser-image/
+[11/Jun/2026 11:39:32] "GET /api/journal/analyser-image/ HTTP/1.1" 405 40
+Method Not Allowed: /api/journal/analyser-image/
+[11/Jun/2026 11:39:38] "GET /api/journal/analyser-image/ HTTP/1.1" 405 40
+Internal Server Error: /api/journal/analyser-image/
+Traceback (most recent call last):
+  File "C:\Python\Lib\site-packages\django\db\backends\utils.py", line 87, in _execute
+    return self.cursor.execute(sql)
+           ~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Python\Lib\site-packages\django\db\backends\sqlite3\base.py", line 324, in execute
+    return super().execute(query)
+           ~~~~~~~~~~~~~~~^^^^^^^
+sqlite3.OperationalError: no such table: type_user
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Python\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Python\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Python\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Python\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Python\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Python\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Python\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\ABC\Documents\afro-agri\backend\journal\views.py", line 153, in post
+    cursor.execute('SELECT id_type FROM type_user LIMIT 1')
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python\Lib\site-packages\django\db\backends\utils.py", line 102, in execute
+    return super().execute(sql, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Python\Lib\site-packages\django\db\backends\utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Python\Lib\site-packages\django\db\backends\utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Python\Lib\site-packages\django\db\backends\utils.py", line 84, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Python\Lib\site-packages\django\db\backends\utils.py", line 87, in _execute
+    return self.cursor.execute(sql)
+           ~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Python\Lib\site-packages\django\db\backends\sqlite3\base.py", line 324, in execute
+    return super().execute(query)
+           ~~~~~~~~~~~~~~~^^^^^^^
+django.db.utils.OperationalError: no such table: type_user
+[11/Jun/2026 11:39:47] "POST /api/journal/analyser-image/ HTTP/1.1" 500 136286
+Internal Server Error: /api/journal/analyser-image/
+Traceback (most recent call last):
+  File "C:\Python\Lib\site-packages\django\db\backends\utils.py", line 87, in _execute
+    return self.cursor.execute(sql)
+           ~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Python\Lib\site-packages\django\db\backends\sqlite3\base.py", line 324, in execute
+    return super().execute(query)
+           ~~~~~~~~~~~~~~~^^^^^^^
+sqlite3.OperationalError: no such table: type_user
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Python\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Python\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Python\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Python\Lib\site-packages\django\views\generic\base.py", line 105, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python\Lib\site-packages\rest_framework\views.py", line 515, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Python\Lib\site-packages\rest_framework\views.py", line 475, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Python\Lib\site-packages\rest_framework\views.py", line 486, in raise_uncaught_exception
+    raise exc
+  File "C:\Python\Lib\site-packages\rest_framework\views.py", line 512, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Users\ABC\Documents\afro-agri\backend\journal\views.py", line 153, in post
+    cursor.execute('SELECT id_type FROM type_user LIMIT 1')
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python\Lib\site-packages\django\db\backends\utils.py", line 102, in execute
+    return super().execute(sql, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Python\Lib\site-packages\django\db\backends\utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Python\Lib\site-packages\django\db\backends\utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Python\Lib\site-packages\django\db\backends\utils.py", line 84, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Python\Lib\site-packages\django\db\backends\utils.py", line 87, in _execute
+    return self.cursor.execute(sql)
+           ~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Python\Lib\site-packages\django\db\backends\sqlite3\base.py", line 324, in execute
+    return super().execute(query)
+           ~~~~~~~~~~~~~~~^^^^^^^
+django.db.utils.OperationalError: no such table: type_user
+[11/Jun/2026 11:40:12] "POST /api/journal/analyser-image/ HTTP/1.1" 500 136286
+C:\Users\ABC\Documents\afro-agri\backend\afroagri\settings.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+
+You have 25 unapplied migration(s). Your project may not work properly until you apply the migrations for app(s): admin, auth, champs, contenttypes, diagnostic, etude_sol, journal, plantes, sessions, type_user, users.
+Run 'python manage.py migrate' to apply them.
+June 11, 2026 - 10:55:31
+Django version 4.2.30, using settings 'afroagri.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CTRL-BREAK.
+
+Watching for file changes with StatReloader
+C:\Users\ABC\Documents\afro-agri\backend\journal\views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+
+You have 5 unapplied migration(s). Your project may not work properly until you apply the migrations for app(s): champs, etude_sol, plantes, type_user, users.
+Run 'python manage.py migrate' to apply them.
+June 11, 2026 - 11:42:45
+Django version 4.2.30, using settings 'afroagri.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CTRL-BREAK.
+
+Watching for file changes with StatReloader
+C:\Users\ABC\Documents\afro-agri\backend\journal\views.py changed, reloading.
+Performing system checks...
+
+System check identified no issues (0 silenced).
+
+You have 5 unapplied migration(s). Your project may not work properly until you apply the migrations for app(s): champs, etude_sol, plantes, type_user, users.
+Run 'python manage.py migrate' to apply them.
+June 11, 2026 - 11:43:08
+Django version 4.2.30, using settings 'afroagri.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CTRL-BREAK.
+
+Watching for file changes with StatReloader
+[11/Jun/2026 11:50:30] "POST /api/journal/analyser-image/ HTTP/1.1" 201 772
+Not Found: /
+[11/Jun/2026 11:51:03] "GET / HTTP/1.1" 404 3567
+[11/Jun/2026 11:51:11] "GET /diagnostic/ HTTP/1.1" 200 19579
+[11/Jun/2026 11:51:27] "POST /api/journal/analyser-image/ HTTP/1.1" 201 772
+[11/Jun/2026 11:56:16] "PATCH /api/journal/4/confirmer-ia/ HTTP/1.1" 200 119
+[11/Jun/2026 12:00:25] "POST /api/journal/analyser-image/ HTTP/1.1" 201 312

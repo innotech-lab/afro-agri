@@ -224,6 +224,50 @@
 
         .tag-saine  { color: #2e7d32; }
         .tag-malade { color: #e65100; }
+
+        /* --- CONFIRMATION IA --- */
+        #confirmation-section { display: none; }
+
+        .confirm-field {
+            margin-bottom: 12px;
+        }
+
+        .confirm-field label {
+            display: block;
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 4px;
+        }
+
+        .confirm-field input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .confirm-field input:focus {
+            outline: none;
+            border-color: #2e7d32;
+        }
+
+        .badge-ia {
+            display: inline-block;
+            background: #e8f5e9;
+            color: #2e7d32;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-left: 6px;
+            font-weight: normal;
+        }
+
+        #confirm-status {
+            margin-top: 10px;
+            font-size: 13px;
+            min-height: 20px;
+        }
     </style>
 </head>
 <body>
@@ -273,6 +317,35 @@
     <!-- RESULTAT -->
     <div class="card" id="result"></div>
 
+    <!-- CONFIRMATION IA -->
+    <div class="card" id="confirmation-section">
+        <h3>✏️ Confirmer les informations <span class="badge-ia">Pré-rempli par IA</span></h3>
+        <p style="font-size:13px;color:#888;margin-bottom:14px;">Vérifiez et corrigez si nécessaire avant d'enregistrer.</p>
+
+        <div class="confirm-field">
+            <label>Maladie suspectée</label>
+            <input type="text" id="cf-maladie" placeholder="Maladie détectée par l'IA">
+        </div>
+        <div class="confirm-field">
+            <label>Symptômes</label>
+            <input type="text" id="cf-symptomes" placeholder="Symptômes observés">
+        </div>
+        <div class="confirm-field">
+            <label>Ravageur suspecté</label>
+            <input type="text" id="cf-ravageur" placeholder="Ravageur (optionnel)">
+        </div>
+        <div class="confirm-field">
+            <label>Stade de croissance</label>
+            <input type="text" id="cf-stade" placeholder="Stade de la plante">
+        </div>
+
+        <div class="btn-row">
+            <button class="btn btn-green" id="btn-confirmer">✅ Enregistrer</button>
+            <button class="btn btn-grey" onclick="recommencer()">🔄 Nouveau</button>
+        </div>
+        <div id="confirm-status"></div>
+    </div>
+
 </div>
 
 <script>
@@ -286,6 +359,9 @@
     const fileInput  = document.getElementById('file-input');
     const loader     = document.getElementById('loader');
     const resultDiv  = document.getElementById('result');
+    const confirmSection = document.getElementById('confirmation-section');
+    const btnConfirmer   = document.getElementById('btn-confirmer');
+    const confirmStatus  = document.getElementById('confirm-status');
 
     let stream = null;
     let capturedBlob = null;
@@ -315,16 +391,12 @@
         canvas.width  = video.videoWidth;
         canvas.height = video.videoHeight;
         canvas.getContext('2d').drawImage(video, 0, 0);
-
         canvas.toBlob(blob => {
             capturedBlob = blob;
             preview.src = URL.createObjectURL(blob);
             preview.style.display = 'block';
             video.style.display = 'none';
-
-            // Arrêter le stream
             if (stream) stream.getTracks().forEach(t => t.stop());
-
             btnCapture.disabled = true;
             btnRetryCam.style.display = 'inline-flex';
             btnAnalyser.disabled = false;
@@ -340,6 +412,7 @@
         capturedBlob = null;
         resultDiv.style.display = 'none';
         resultDiv.innerHTML = '';
+        confirmSection.style.display = 'none';
     });
 
     // --- Upload depuis galerie ---
@@ -356,65 +429,36 @@
         btnRetryCam.style.display = 'inline-flex';
     });
 
-    // --- Creer le journal automatiquement ---
-    async function creerJournal() {
-        const nomPlante = document.getElementById('nom-plante').value || 'plante inconnue';
-        const stade     = document.getElementById('stade').value || 'non renseigne';
-
-        try {
-            const resp = await fetch('http://127.0.0.1:8000/api/journal/quick-create/', {
-                method : 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body   : JSON.stringify({ nom_plante: nomPlante, stade: stade })
-            });
-            const data = await resp.json();
-            if (!resp.ok) {
-                afficherErreur('Erreur creation journal : ' + (data.error || JSON.stringify(data)));
-                return null;
-            }
-            document.getElementById('journal-status').innerHTML =
-                `<div style="color:#2e7d32;font-size:13px;margin-top:4px;">Journal #${data.id_journal} cree</div>`;
-            return data.id_journal;
-        } catch(e) {
-            afficherErreur('Serveur inaccessible.');
-            return null;
-        }
-    }
-
-    // --- Analyser ---
+    // --- Analyser via IA ---
     btnAnalyser.addEventListener('click', async () => {
         if (!capturedBlob) { alert('Veuillez capturer ou choisir une image.'); return; }
 
-        // Afficher loader
         loader.style.display = 'block';
         resultDiv.style.display = 'none';
         resultDiv.innerHTML = '';
+        confirmSection.style.display = 'none';
         btnAnalyser.disabled = true;
-
-        // Créer le journal si pas encore fait
-        if (!journalId) {
-            journalId = await creerJournal();
-            if (!journalId) {
-                loader.style.display = 'none';
-                btnAnalyser.disabled = false;
-                return;
-            }
-        }
+        journalId = null;
 
         const formData = new FormData();
         formData.append('image', capturedBlob, 'plante.jpg');
-        formData.append('id_journal', journalId);
-        formData.append('nom_plante', document.getElementById('nom-plante').value || '');
+        formData.append('nom_plante', document.getElementById('nom-plante').value || 'plante inconnue');
+        formData.append('stade', document.getElementById('stade').value || 'non renseigne');
 
         try {
-            const resp = await fetch('http://127.0.0.1:8000/api/diagnostic/analyser/', {
+            const resp = await fetch('http://127.0.0.1:8000/api/journal/analyser-image/', {
                 method: 'POST',
                 body: formData
             });
             const data = await resp.json();
             loader.style.display = 'none';
             if (!resp.ok) { afficherErreur(data.error || 'Erreur serveur.'); return; }
-            afficherResultat(data.details, preview.src);
+
+            journalId = data.id_journal;
+            const ia  = data.suggestions_ia;
+
+            afficherResultat(ia, preview.src);
+            preRemplirConfirmation(ia);
         } catch (e) {
             loader.style.display = 'none';
             afficherErreur('Impossible de contacter le serveur.');
@@ -422,12 +466,54 @@
         btnAnalyser.disabled = false;
     });
 
-    // --- Afficher le résultat ---
-    function afficherResultat(d, imgSrc) {
-        const estSaine = d.est_saine;
-        const confiance = parseFloat(d.confiance_pct) || 0;
+    // --- Pré-remplir le formulaire de confirmation ---
+    function preRemplirConfirmation(ia) {
+        document.getElementById('cf-maladie').value   = ia.maladie_suspecte   || '';
+        document.getElementById('cf-symptomes').value = ia.symptomes          || '';
+        document.getElementById('cf-ravageur').value  = '';
+        document.getElementById('cf-stade').value     = document.getElementById('stade').value || '';
+        confirmSection.style.display = 'block';
+        confirmStatus.innerHTML = '';
+        confirmSection.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // --- Confirmer et enregistrer ---
+    btnConfirmer.addEventListener('click', async () => {
+        if (!journalId) return;
+        btnConfirmer.disabled = true;
+        confirmStatus.innerHTML = '<span style="color:#888;">Enregistrement...</span>';
+
+        try {
+            const resp = await fetch(`http://127.0.0.1:8000/api/journal/${journalId}/confirmer-ia/`, {
+                method : 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body   : JSON.stringify({
+                    maladie_suspecte  : document.getElementById('cf-maladie').value,
+                    symptomes         : document.getElementById('cf-symptomes').value,
+                    ravageur_suspecte : document.getElementById('cf-ravageur').value,
+                    stade_croissance  : document.getElementById('cf-stade').value,
+                })
+            });
+            const data = await resp.json();
+            if (resp.ok) {
+                confirmStatus.innerHTML = `<span style="color:#2e7d32;">✅ Journal #${data.id_journal} enregistré avec succès.</span>`;
+                btnConfirmer.disabled = true;
+            } else {
+                confirmStatus.innerHTML = `<span style="color:#c62828;">❌ ${data.error || 'Erreur.'}</span>`;
+                btnConfirmer.disabled = false;
+            }
+        } catch (e) {
+            confirmStatus.innerHTML = '<span style="color:#c62828;">❌ Serveur inaccessible.</span>';
+            btnConfirmer.disabled = false;
+        }
+    });
+
+    // --- Afficher le résultat IA ---
+    function afficherResultat(ia, imgSrc) {
+        const estSaine  = ia.est_saine;
+        const confiance = parseFloat(ia.confiance) || 0;
         const couleurBar = confiance > 70 ? '#2e7d32' : confiance > 40 ? '#f57c00' : '#c62828';
-        const github = d.source_open_source || {};
+        const github = ia.source || {};
 
         resultDiv.innerHTML = `
             <div class="result-header">
@@ -436,7 +522,7 @@
                     <div class="result-title ${estSaine ? 'tag-saine' : 'tag-malade'}">
                         ${estSaine ? 'Plante Saine' : 'Maladie Détectée'}
                     </div>
-                    <div class="result-subtitle">${d.plante_detectee || ''}</div>
+                    <div class="result-subtitle">${ia.plante_detectee || ''}</div>
                 </div>
             </div>
 
@@ -444,43 +530,27 @@
 
             <div class="info-row">
                 <span class="info-label">Maladie</span>
-                <span class="info-value">${d.maladie || 'Aucune'}</span>
+                <span class="info-value">${ia.maladie_suspecte || 'Aucune'}</span>
             </div>
-
             <div class="info-row">
                 <span class="info-label">Confiance IA</span>
-                <span class="info-value">${d.confiance_pct}</span>
+                <span class="info-value">${confiance}%</span>
             </div>
             <div class="confiance-bar">
                 <div class="confiance-fill" style="width:${confiance}%;background:${couleurBar};"></div>
             </div>
-
             <div class="info-row" style="margin-top:12px;">
-                <span class="info-label">Traitement</span>
+                <span class="info-label">Traitement suggéré</span>
             </div>
             <div class="traitement-box ${estSaine ? 'saine-box' : ''}">
-                ${d.traitement || 'Consulter un agronome.'}
+                ${ia.traitement_suggere || 'Consulter un agronome.'}
             </div>
-
             ${github.url ? `
-            <div class="info-row" style="margin-top:12px;">
-                <span class="info-label">Source GitHub</span>
-            </div>
-            <div style="font-size:13px; color:#555; margin-top:4px;">
-                ${github.nom || ''}
-                <br>
+            <div style="margin-top:12px;font-size:13px;color:#555;">
+                <strong>Source :</strong> ${github.nom || ''}<br>
                 <a class="github-link" href="${github.url}" target="_blank">${github.url}</a>
-                ${github.autres_sources && github.autres_sources.length ? `
-                    <br><br><strong>Autres sources :</strong>
-                    ${github.autres_sources.map(s =>
-                        `<br><a class="github-link" href="${s.url}" target="_blank">${s.nom}</a>`
-                    ).join('')}
-                ` : ''}
             </div>` : ''}
-
-            <button class="btn-retry" onclick="recommencer()">🔄 Nouveau diagnostic</button>
         `;
-
         resultDiv.style.display = 'block';
         resultDiv.scrollIntoView({ behavior: 'smooth' });
     }
@@ -488,6 +558,7 @@
     function afficherErreur(msg) {
         resultDiv.innerHTML = `<div class="error-box">❌ ${msg}</div>`;
         resultDiv.style.display = 'block';
+        loader.style.display = 'none';
     }
 
     function recommencer() {
@@ -497,6 +568,9 @@
         preview.src = '';
         resultDiv.style.display = 'none';
         resultDiv.innerHTML = '';
+        confirmSection.style.display = 'none';
+        confirmStatus.innerHTML = '';
+        btnConfirmer.disabled = false;
         document.getElementById('journal-status').innerHTML = '';
         btnStart.style.display = 'inline-flex';
         btnCapture.disabled = true;

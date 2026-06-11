@@ -5,8 +5,10 @@ from django.db import connection
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.parsers import MultiPartParser, FormParser
 from .models import JournalPlante
 from .serializers import JournalPlanteSerializer
+from diagnostic.ia_service import diagnostiquer
 
 
 class JournalPlanteView(APIView):
@@ -62,7 +64,7 @@ class JournalQuickCreateView(APIView):
             row = cursor.fetchone()
             if not row:
                 cursor.execute(
-                    "INSERT INTO champs (superficie, source_eau, longitude, latitude, created_at) VALUES (1.0, 'Pluie', 0.0, 0.0, NOW())"
+                    "INSERT INTO champs (superficie, source_eau, longitude, latitude) VALUES (1.0, 'pluie', 0.0, 0.0)"
                 )
                 cursor.execute('SELECT id_champ FROM champs LIMIT 1')
                 row = cursor.fetchone()
@@ -73,8 +75,8 @@ class JournalQuickCreateView(APIView):
             row = cursor.fetchone()
             if not row:
                 cursor.execute(
-                    "INSERT INTO plantes (nom_plante, variete, date_plantation, id_champ, created_at, updated_at) VALUES (%s, 'inconnue', %s, %s, NOW(), NOW())",
-                    [nom_plante, today, id_champ]
+                    "INSERT INTO plantes (nom_plante, variete, date_plantation, id_champ, updated_at) VALUES (%s, %s, %s, %s, NOW())",
+                    [nom_plante, today, today, id_champ]
                 )
                 cursor.execute('SELECT id_plante FROM plantes LIMIT 1')
                 row = cursor.fetchone()
@@ -85,7 +87,7 @@ class JournalQuickCreateView(APIView):
                 INSERT INTO journal_plante
                 (id_plante, date_observation, stade_croissance, symptomes,
                  ravageur_suspecte, maladie_suspecte, id_user,
-                 session_uuid, longitude, latitude, created_at)
+                 session_uuid, longitude, latitude, updated_at)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())
                 ''',
                 [id_plante, today, stade, 'en cours de diagnostic',
@@ -125,6 +127,126 @@ class PlantDiseaseGithubView(APIView):
             for item in items
         ]
         return Response({'source': 'GitHub Open Source', 'query': query, 'resultats': data})
+
+
+class AnalyserImageView(APIView):
+    """
+    POST /api/journal/analyser-image/
+    Analyse l'image via IA, cree le journal_plante et retourne les suggestions.
+    Form-data: { image, nom_plante (optionnel), stade (optionnel) }
+    """
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request):
+        image = request.FILES.get('image')
+        if not image:
+            return Response({'error': 'Image requise.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        nom_plante = request.data.get('nom_plante', 'plante inconnue')
+        stade      = request.data.get('stade', 'non renseigne')
+        today      = __import__('datetime').date.today()
+        session    = str(uuid.uuid4())[:20]
+
+        resultat = diagnostiquer(image, nom_plante)
+
+        with connection.cursor() as cursor:
+            cursor.execute('SELECT id_type FROM type_user LIMIT 1')
+            row = cursor.fetchone()
+            if not row:
+                cursor.execute("INSERT INTO type_user (type) VALUES ('agriculteur')")
+                cursor.execute('SELECT id_type FROM type_user LIMIT 1')
+                row = cursor.fetchone()
+            id_type = row[0]
+
+            cursor.execute('SELECT id_user FROM users LIMIT 1')
+            row = cursor.fetchone()
+            if not row:
+                cursor.execute(
+                    "INSERT INTO users (prenom, id_type, email, password, created_date) VALUES ('admin', %s, 'admin@afroagri.com', 'admin', NOW())",
+                    [id_type]
+                )
+                cursor.execute('SELECT id_user FROM users LIMIT 1')
+                row = cursor.fetchone()
+            id_user = row[0]
+
+            cursor.execute('SELECT id_champ FROM champs LIMIT 1')
+            row = cursor.fetchone()
+            if not row:
+                cursor.execute(
+                    "INSERT INTO champs (superficie, source_eau, longitude, latitude) VALUES (1.0, 'pluie', 0.0, 0.0)"
+                )
+                cursor.execute('SELECT id_champ FROM champs LIMIT 1')
+                row = cursor.fetchone()
+            id_champ = row[0]
+
+            cursor.execute('SELECT id_plante FROM plantes WHERE nom_plante = %s LIMIT 1', [nom_plante])
+            row = cursor.fetchone()
+            if not row:
+                cursor.execute(
+                    "INSERT INTO plantes (nom_plante, variete, date_plantation, id_champ, updated_at) VALUES (%s, %s, %s, %s, NOW())",
+                    [nom_plante, today, today, id_champ]
+                )
+                cursor.execute('SELECT id_plante FROM plantes WHERE nom_plante = %s LIMIT 1', [nom_plante])
+                row = cursor.fetchone()
+            id_plante = row[0]
+
+            cursor.execute(
+                '''INSERT INTO journal_plante
+                   (id_plante, date_observation, stade_croissance, symptomes,
+                    ravageur_suspecte, maladie_suspecte, id_user,
+                    session_uuid, longitude, latitude, updated_at)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 0.0, 0.0, NOW())''',
+                [id_plante, today, stade,
+                 resultat['classe_complete'],
+                 'inconnu',
+                 resultat['maladie_detectee'],
+                 id_user, session]
+            )
+            id_journal = cursor.lastrowid
+
+        return Response({
+            'id_journal': id_journal,
+            'suggestions_ia': {
+                'plante_detectee': resultat['plante_detectee'],
+                'maladie_suspecte': resultat['maladie_detectee'],
+                'symptomes': resultat['classe_complete'],
+                'traitement_suggere': resultat['traitement_suggere'],
+                'confiance': resultat['confiance'],
+                'est_saine': resultat['est_saine'],
+                'source': resultat['github'],
+            }
+        }, status=status.HTTP_201_CREATED)
+
+
+class ConfirmerIAView(APIView):
+    """
+    PATCH /api/journal/<id>/confirmer-ia/
+    L'utilisateur confirme ou corrige les suggestions IA et met a jour le journal.
+    Body: { stade_croissance, symptomes, ravageur_suspecte, maladie_suspecte }
+    """
+    def patch(self, request, pk):
+        champs = ['stade_croissance', 'symptomes', 'ravageur_suspecte', 'maladie_suspecte']
+        updates = {c: request.data[c] for c in champs if c in request.data}
+        if not updates:
+            return Response({'error': 'Aucun champ fourni.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        set_clause = ', '.join(f'{c} = %s' for c in updates)
+        with connection.cursor() as cursor:
+            cursor.execute(f'SELECT id_journal FROM journal_plante WHERE id_journal = %s', [pk])
+            if not cursor.fetchone():
+                return Response(status=status.HTTP_404_NOT_FOUND)
+            cursor.execute(
+                f'UPDATE journal_plante SET {set_clause} WHERE id_journal = %s',
+                list(updates.values()) + [pk]
+            )
+            cursor.execute(
+                'SELECT id_journal, stade_croissance, symptomes, ravageur_suspecte, maladie_suspecte FROM journal_plante WHERE id_journal = %s',
+                [pk]
+            )
+            cols = [c[0] for c in cursor.description]
+            row  = cursor.fetchone()
+
+        return Response(dict(zip(cols, row)))
 
 
 class EnrichJournalPlanteView(APIView):
