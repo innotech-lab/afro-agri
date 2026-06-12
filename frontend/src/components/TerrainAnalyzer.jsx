@@ -121,69 +121,76 @@ export default function TerrainAnalyzer() {
   return (
     <div className="w-full max-w-2xl mx-auto">
 
-      {/* Camera modal */}
-      {cameraOpen && (
-        <div className="fixed inset-0 z-50 bg-black flex flex-col">
-          {/* Camera topbar */}
-          <div className="flex items-center justify-between px-5 py-4 bg-black/60">
-            <span className="text-white font-bold text-sm">📷 Prendre une photo</span>
-            <button onClick={closeCamera} className="text-white/70 hover:text-white p-1">
-              <X size={22} />
-            </button>
-          </div>
-
-          {/* Video stream */}
-          <div className="flex-1 relative overflow-hidden">
-            {cameraError ? (
-              <div className="flex flex-col items-center justify-center h-full gap-3 px-6">
-                <XCircle size={40} className="text-red-400" />
-                <p className="text-white text-sm text-center">{cameraError}</p>
-                <button
-                  onClick={closeCamera}
-                  className="mt-2 px-6 py-2 bg-white/10 text-white rounded-xl text-sm hover:bg-white/20"
-                >
-                  Fermer
-                </button>
-              </div>
-            ) : (
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className="w-full h-full object-cover"
-              />
-            )}
-            {/* Viewfinder corners */}
-            {!cameraError && (
-              <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
-                <div className="w-64 h-64 relative">
-                  <span className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-terra-gold rounded-tl-lg" />
-                  <span className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-terra-gold rounded-tr-lg" />
-                  <span className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-terra-gold rounded-bl-lg" />
-                  <span className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-terra-gold rounded-br-lg" />
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Shutter */}
-          {!cameraError && (
-            <div className="flex items-center justify-center py-8 bg-black/60">
-              <button
-                onClick={capturePhoto}
-                className="w-16 h-16 rounded-full bg-white flex items-center justify-center hover:scale-95 active:scale-90 transition-transform shadow-lg"
-              >
-                <Circle size={28} className="text-terra-dark fill-terra-dark" />
-              </button>
-            </div>
-          )}
-        </div>
-      )}
-
       {!result ? (
         <div className="flex flex-col gap-5">
-          {/* Drop zone */}
+
+          {/* Camera box — replaces drop zone when active */}
+          {cameraOpen ? (
+            <div className="rounded-2xl overflow-hidden border border-terra-border dark:border-terra-forest shadow-lg bg-terra-dark">
+              {/* Header */}
+              <div className="flex items-center justify-between px-4 py-3 bg-terra-dark border-b border-terra-forest">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                  <span className="text-terra-light text-xs font-semibold tracking-wide uppercase">
+                    Caméra active
+                  </span>
+                </div>
+                <button
+                  onClick={closeCamera}
+                  className="text-terra-medium hover:text-terra-light p-1 rounded-lg hover:bg-terra-forest transition-colors"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              {/* Video stream */}
+              <div className="relative bg-black" style={{ height: 280 }}>
+                {cameraError ? (
+                  <div className="flex flex-col items-center justify-center h-full gap-3 px-6">
+                    <XCircle size={32} className="text-red-400" />
+                    <p className="text-terra-medium text-sm text-center">{cameraError}</p>
+                  </div>
+                ) : (
+                  <>
+                    <video
+                      ref={videoRef}
+                      autoPlay
+                      playsInline
+                      muted
+                      className="w-full h-full object-cover"
+                    />
+                    {/* Viewfinder */}
+                    <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
+                      <div className="relative" style={{ width: 180, height: 140 }}>
+                        <span className="absolute top-0 left-0 w-6 h-6 border-t-2 border-l-2 border-terra-gold rounded-tl" />
+                        <span className="absolute top-0 right-0 w-6 h-6 border-t-2 border-r-2 border-terra-gold rounded-tr" />
+                        <span className="absolute bottom-0 left-0 w-6 h-6 border-b-2 border-l-2 border-terra-gold rounded-bl" />
+                        <span className="absolute bottom-0 right-0 w-6 h-6 border-b-2 border-r-2 border-terra-gold rounded-br" />
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Footer with shutter */}
+              {!cameraError && (
+                <div className="flex items-center justify-center gap-4 px-4 py-4 bg-terra-dark">
+                  <span className="text-terra-medium text-xs flex-1 text-right">
+                    Cadrez le terrain
+                  </span>
+                  <button
+                    onClick={capturePhoto}
+                    className="w-12 h-12 rounded-full bg-white border-4 border-terra-gold flex items-center justify-center hover:scale-95 active:scale-90 transition-transform shadow-md"
+                    title="Capturer"
+                  >
+                    <div className="w-6 h-6 rounded-full bg-terra-dark" />
+                  </button>
+                  <span className="flex-1" />
+                </div>
+              )}
+            </div>
+          ) : (
+          /* Drop zone */
           <div
             onClick={() => inputRef.current?.click()}
             onDragOver={e => { e.preventDefault(); setDragging(true) }}
@@ -232,6 +239,7 @@ export default function TerrainAnalyzer() {
               </div>
             )}
           </div>
+          )}
 
           {/* Action buttons row */}
           <div className="grid grid-cols-2 gap-3">
