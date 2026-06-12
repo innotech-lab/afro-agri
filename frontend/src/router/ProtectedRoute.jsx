@@ -11,7 +11,7 @@ const ROLE_ROUTES = {
 export default function ProtectedRoute({ allowedRole, children }) {
   const { user } = useAuth()
 
-  if (!user) return <Navigate to="/login" replace />
+  if (!user) return <Navigate to="/" replace />
 
   const userRole = user.id_type?.toLowerCase()
 

@@ -1,6 +1,6 @@
 // frontend/src/components/Topbar.jsx
 import { useEffect, useState } from 'react'
-import { Sun, Moon, LogOut } from 'lucide-react'
+import { Sun, Moon, LogOut, Home } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 
@@ -22,7 +22,7 @@ export default function Topbar() {
 
   const handleLogout = async () => {
     await logout()
-    navigate('/login')
+    navigate('/')
   }
 
   const role = user?.id_type?.toLowerCase()
@@ -30,14 +30,31 @@ export default function Topbar() {
 
   return (
     <header className="h-12 bg-terra-dark flex items-center px-4 gap-3 flex-shrink-0">
-      <span className="text-terra-gold font-extrabold text-base tracking-tight mr-2">
-        🌿 AfroAgri
-      </span>
+      <button
+        onClick={() => navigate('/')}
+        className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+        title="Retour à l'accueil"
+      >
+        <span className="text-terra-gold font-extrabold text-base tracking-tight">
+          🌿 AfroAgri
+        </span>
+      </button>
+
       <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${roleInfo.color}`}>
         {roleInfo.label}
       </span>
 
       <div className="flex-1" />
+
+      {/* Retour accueil */}
+      <button
+        onClick={() => navigate('/')}
+        className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-terra-medium hover:text-terra-light hover:bg-terra-forest transition-colors text-xs font-semibold"
+        title="Page d'accueil"
+      >
+        <Home size={14} />
+        Accueil
+      </button>
 
       <button
         onClick={() => setDark(d => !d)}
