@@ -8,6 +8,7 @@ const ROLE_ROUTES = {
   agriculteur: '/dashboard/agriculteur',
   minister:    '/dashboard/ministere',
   admin:       '/dashboard/admin',
+  particulier: '/dashboard/particulier',
 }
 
 export default function PublicNavbar() {

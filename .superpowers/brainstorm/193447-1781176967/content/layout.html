@@ -1,0 +1,147 @@
+<h2>Structure du layout</h2>
+<p class="subtitle">Comment organiser la navigation et le contenu des dashboards ?</p>
+
+<style>
+  .lyt { border-radius: 10px; overflow: hidden; font-size: 10px; margin: 10px 0 8px; background: #f5f7f0; border: 1px solid #e0e8d8; height: 140px; display: flex; flex-direction: column; }
+  .lyt-top { background: #1a2e1a; color: #a8d5a2; height: 30px; display: flex; align-items: center; padding: 0 12px; gap: 10px; font-size: 10px; font-weight: 600; flex-shrink: 0; }
+  .lyt-top .logo { font-weight: 700; color: #d4a843; font-size: 11px; }
+  .lyt-top .nav-items { display: flex; gap: 8px; margin-left: 16px; }
+  .lyt-top .nav-item { padding: 2px 8px; border-radius: 4px; font-size: 9px; color: #7ec87a; }
+  .lyt-top .nav-item.active { background: #4a7c59; color: #fff; }
+  .lyt-top .user { margin-left: auto; display: flex; align-items: center; gap: 5px; font-size: 9px; }
+  .lyt-top .avatar { width: 16px; height: 16px; border-radius: 50%; background: #4a7c59; }
+  .lyt-body { display: flex; flex: 1; overflow: hidden; }
+  .lyt-sidebar { background: #1a2e1a; width: 72px; padding: 8px 6px; display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+  .lyt-sidebar .s-item { height: 22px; border-radius: 6px; display: flex; align-items: center; padding: 0 6px; gap: 5px; color: #4a7c59; font-size: 9px; }
+  .lyt-sidebar .s-item.active { background: #2d5a3d; color: #7ec87a; }
+  .lyt-sidebar .s-icon { width: 8px; height: 8px; border-radius: 2px; background: currentColor; flex-shrink: 0; }
+  .lyt-main { flex: 1; padding: 8px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; align-content: start; }
+  .lyt-card { background: #fff; border-radius: 6px; padding: 5px 7px; border: 1px solid #e0e8d8; }
+  .lyt-card .v { font-size: 13px; font-weight: 700; color: #1a2e1a; }
+  .lyt-card .l { font-size: 8px; color: #888; text-transform: uppercase; letter-spacing: 0.4px; }
+  .lyt-chart-row { grid-column: span 3; background: #fff; border-radius: 6px; border: 1px solid #e0e8d8; height: 28px; display: flex; align-items: flex-end; padding: 0 8px 3px; gap: 3px; }
+  .lyt-chart-row .b { border-radius: 2px 2px 0 0; flex: 1; }
+
+  /* Variant B — sidebar large avec labels */
+  .lyt-sidebar-wide { width: 110px; }
+  .lyt-sidebar-wide .s-item { font-size: 9px; }
+
+  /* Variant C — topnav uniquement */
+  .lyt-topnav { background: #1a2e1a; height: 36px; display: flex; align-items: center; padding: 0 12px; gap: 10px; flex-shrink: 0; }
+
+  /* badges */
+  .badge { display: inline-block; font-size: 8px; padding: 1px 5px; border-radius: 10px; font-weight: 600; margin-left: 4px; }
+  .badge-gold { background: #d4a843; color: #1a1a1a; }
+  .badge-green { background: #4a7c59; color: #fff; }
+</style>
+
+<div class="cards">
+
+  <div class="card" data-choice="sidebar-icon" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="lyt">
+        <div class="lyt-top">
+          <span class="logo">🌿 AfroAgri</span>
+          <span class="user"><span class="avatar"></span> Amadou K.</span>
+        </div>
+        <div class="lyt-body">
+          <div class="lyt-sidebar">
+            <div class="s-item active"><div class="s-icon"></div></div>
+            <div class="s-item"><div class="s-icon" style="border-radius:50%"></div></div>
+            <div class="s-item"><div class="s-icon" style="border-radius:0"></div></div>
+            <div class="s-item"><div class="s-icon" style="clip-path:polygon(50% 0,100% 100%,0 100%)"></div></div>
+          </div>
+          <div class="lyt-main">
+            <div class="lyt-card"><div class="v">142</div><div class="l">Champs</div></div>
+            <div class="lyt-card"><div class="v">38</div><div class="l">Plantes</div></div>
+            <div class="lyt-card"><div class="v">87%</div><div class="l">Santé</div></div>
+            <div class="lyt-chart-row">
+              <div class="b" style="height:55%;background:#7ec87a"></div>
+              <div class="b" style="height:75%;background:#7ec87a"></div>
+              <div class="b" style="height:45%;background:#7ec87a"></div>
+              <div class="b" style="height:90%;background:#d4a843"></div>
+              <div class="b" style="height:65%;background:#7ec87a"></div>
+              <div class="b" style="height:80%;background:#7ec87a"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Sidebar icônes <span class="badge badge-gold">Recommandé</span></h3>
+      <p>Sidebar sombre compacte (icônes uniquement), s'expand au hover. Maximum d'espace pour les stats. Moderne, clean. Pattern courant sur les dashboards pro (Vercel, Linear).</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="sidebar-labels" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="lyt">
+        <div class="lyt-top">
+          <span class="logo">🌿 AfroAgri</span>
+          <span class="user"><span class="avatar"></span> Amadou K.</span>
+        </div>
+        <div class="lyt-body">
+          <div class="lyt-sidebar lyt-sidebar-wide">
+            <div class="s-item active"><div class="s-icon"></div>Tableau</div>
+            <div class="s-item"><div class="s-icon" style="border-radius:50%"></div>Champs</div>
+            <div class="s-item"><div class="s-icon" style="border-radius:0"></div>Plantes</div>
+            <div class="s-item"><div class="s-icon"></div>Journal</div>
+          </div>
+          <div class="lyt-main" style="grid-template-columns:1fr 1fr;">
+            <div class="lyt-card"><div class="v">142</div><div class="l">Champs</div></div>
+            <div class="lyt-card"><div class="v">87%</div><div class="l">Santé</div></div>
+            <div class="lyt-chart-row" style="grid-column:span 2">
+              <div class="b" style="height:55%;background:#7ec87a"></div>
+              <div class="b" style="height:75%;background:#7ec87a"></div>
+              <div class="b" style="height:45%;background:#7ec87a"></div>
+              <div class="b" style="height:90%;background:#d4a843"></div>
+              <div class="b" style="height:65%;background:#7ec87a"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Sidebar avec labels</h3>
+      <p>Sidebar fixe large avec texte. Très lisible, parfait si les utilisateurs ne sont pas ultra-tech. Prend plus de place mais navigation toujours visible.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="topnav" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="lyt" style="flex-direction:column">
+        <div class="lyt-top" style="height:30px">
+          <span class="logo">🌿 AfroAgri</span>
+          <div class="nav-items">
+            <span class="nav-item active">Dashboard</span>
+            <span class="nav-item">Champs</span>
+            <span class="nav-item">Plantes</span>
+            <span class="nav-item">Journal</span>
+          </div>
+          <span class="user" style="margin-left:auto"><span class="avatar"></span></span>
+        </div>
+        <div style="flex:1;padding:8px;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px;align-content:start;background:#f5f7f0">
+          <div class="lyt-card"><div class="v">142</div><div class="l">Champs</div></div>
+          <div class="lyt-card"><div class="v">38</div><div class="l">Plantes</div></div>
+          <div class="lyt-card"><div class="v">12</div><div class="l">Alertes</div></div>
+          <div class="lyt-card"><div class="v">87%</div><div class="l">Santé</div></div>
+          <div class="lyt-chart-row" style="grid-column:span 4">
+            <div class="b" style="height:55%;background:#7ec87a"></div>
+            <div class="b" style="height:75%;background:#7ec87a"></div>
+            <div class="b" style="height:45%;background:#7ec87a"></div>
+            <div class="b" style="height:90%;background:#d4a843"></div>
+            <div class="b" style="height:65%;background:#7ec87a"></div>
+            <div class="b" style="height:80%;background:#7ec87a"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Top navigation</h3>
+      <p>Barre de navigation en haut, pleine largeur pour le contenu. Plus simple à coder, mais moins extensible si on ajoute des sections. Adapté si peu de pages.</p>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="margin-top:12px">Clique sur le layout qui te convient — ou réponds dans le terminal.</p>

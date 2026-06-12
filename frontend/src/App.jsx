@@ -1,10 +1,10 @@
-// frontend/src/App.jsx
 import { Routes, Route, Navigate } from 'react-router-dom'
 import ProtectedRoute from './router/ProtectedRoute'
 import LandingPage from './pages/LandingPage'
 import DashboardAgriculteur from './pages/agriculteur/DashboardAgriculteur'
 import DashboardMinistere from './pages/ministere/DashboardMinistere'
 import DashboardAdmin from './pages/admin/DashboardAdmin'
+import DashboardParticulier from './pages/particulier/DashboardParticulier'
 
 export default function App() {
   return (
@@ -31,6 +31,14 @@ export default function App() {
         element={
           <ProtectedRoute allowedRole="admin">
             <DashboardAdmin />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/dashboard/particulier/*"
+        element={
+          <ProtectedRoute allowedRole="particulier">
+            <DashboardParticulier />
           </ProtectedRoute>
         }
       />

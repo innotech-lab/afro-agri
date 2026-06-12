@@ -1,37 +1,71 @@
 import { useState } from 'react'
-import { Eye, EyeOff, Loader2, X } from 'lucide-react'
+import { Eye, EyeOff, Loader2, X, UserPlus, LogIn } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
+import axios from 'axios'
 
 const ROLE_ROUTES = {
   agriculteur: '/dashboard/agriculteur',
   minister:    '/dashboard/ministere',
   admin:       '/dashboard/admin',
+  particulier: '/dashboard/particulier',
 }
 
-export default function LoginModal({ onClose }) {
+export default function LoginModal({ onClose, defaultTab = 'login' }) {
   const { login } = useAuth()
   const navigate = useNavigate()
+  const [tab, setTab] = useState(defaultTab)
 
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPwd, setShowPwd] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  // Login state
+  const [loginEmail, setLoginEmail] = useState('')
+  const [loginPassword, setLoginPassword] = useState('')
+  const [loginShowPwd, setLoginShowPwd] = useState(false)
+  const [loginLoading, setLoginLoading] = useState(false)
+  const [loginError, setLoginError] = useState('')
 
-  const handleSubmit = async (e) => {
+  // Register state
+  const [regPrenom, setRegPrenom] = useState('')
+  const [regNom, setRegNom] = useState('')
+  const [regEmail, setRegEmail] = useState('')
+  const [regPassword, setRegPassword] = useState('')
+  const [regShowPwd, setRegShowPwd] = useState(false)
+  const [regLoading, setRegLoading] = useState(false)
+  const [regError, setRegError] = useState('')
+
+  const handleLogin = async (e) => {
     e.preventDefault()
-    setError('')
-    setLoading(true)
+    setLoginError('')
+    setLoginLoading(true)
     try {
-      const data = await login(email, password)
-      const role = data.id_type?.toLowerCase()
-      navigate(ROLE_ROUTES[role] ?? '/')
+      const data = await login(loginEmail, loginPassword)
+      navigate(ROLE_ROUTES[data.id_type?.toLowerCase()] ?? '/')
       onClose()
     } catch (err) {
-      setError(err.response?.data?.error ?? 'Identifiants invalides')
+      setLoginError(err.response?.data?.error ?? 'Identifiants invalides')
     } finally {
-      setLoading(false)
+      setLoginLoading(false)
+    }
+  }
+
+  const handleRegister = async (e) => {
+    e.preventDefault()
+    setRegError('')
+    setRegLoading(true)
+    try {
+      const { data } = await axios.post('/api/users/auth/register/', {
+        prenom: regPrenom,
+        nom: regNom,
+        email: regEmail,
+        password: regPassword,
+      })
+      // Auto-login after register
+      const loginData = await login(regEmail, regPassword)
+      navigate(ROLE_ROUTES[loginData.id_type?.toLowerCase()] ?? '/dashboard/particulier')
+      onClose()
+    } catch (err) {
+      setRegError(err.response?.data?.error ?? 'Erreur lors de la création du compte')
+    } finally {
+      setRegLoading(false)
     }
   }
 
@@ -41,11 +75,12 @@ export default function LoginModal({ onClose }) {
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div className="bg-white dark:bg-terra-dark rounded-2xl shadow-2xl w-full max-w-sm mx-4 overflow-hidden">
+
         {/* Header */}
         <div className="bg-terra-dark px-6 py-5 flex items-center justify-between">
           <div>
             <div className="text-terra-gold font-extrabold text-lg">🌿 AfroAgri</div>
-            <div className="text-terra-medium text-xs mt-0.5">Espace professionnel</div>
+            <div className="text-terra-medium text-xs mt-0.5">Votre espace personnel</div>
           </div>
           <button
             onClick={onClose}
@@ -55,69 +90,165 @@ export default function LoginModal({ onClose }) {
           </button>
         </div>
 
-        {/* Form */}
-        <div className="px-6 py-6">
-          <h2 className="text-lg font-extrabold text-terra-dark dark:text-[#e8f5e4] mb-1">
+        {/* Tabs */}
+        <div className="flex border-b border-terra-border dark:border-terra-forest">
+          <button
+            onClick={() => setTab('login')}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold transition-colors
+              ${tab === 'login'
+                ? 'text-terra-dark dark:text-terra-light border-b-2 border-terra-forest'
+                : 'text-gray-400 hover:text-terra-medium'
+              }`}
+          >
+            <LogIn size={15} />
             Connexion
-          </h2>
-          <p className="text-xs text-gray-500 mb-5">
-            Agriculteurs, agents du Ministère et administrateurs
-          </p>
-
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
-                Adresse email
-              </label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="vous@exemple.ml"
-                className="w-full bg-terra-bg dark:bg-terra-forest border border-terra-border dark:border-terra-medium rounded-lg px-3 py-2.5 text-sm text-terra-dark dark:text-[#e8f5e4] focus:outline-none focus:ring-2 focus:ring-terra-medium transition"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
-                Mot de passe
-              </label>
-              <div className="relative">
-                <input
-                  type={showPwd ? 'text' : 'password'}
-                  required
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full bg-terra-bg dark:bg-terra-forest border border-terra-border dark:border-terra-medium rounded-lg px-3 py-2.5 text-sm text-terra-dark dark:text-[#e8f5e4] focus:outline-none focus:ring-2 focus:ring-terra-medium transition pr-10"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPwd(s => !s)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-terra-medium"
-                >
-                  {showPwd ? <EyeOff size={15} /> : <Eye size={15} />}
-                </button>
-              </div>
-            </div>
-
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-xs text-red-600 font-medium">
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex items-center justify-center gap-2 bg-terra-dark text-terra-gold font-bold rounded-lg py-3 hover:bg-terra-forest transition-colors disabled:opacity-60 mt-1"
-            >
-              {loading && <Loader2 size={15} className="animate-spin" />}
-              {loading ? 'Connexion...' : 'Accéder à mon espace →'}
-            </button>
-          </form>
+          </button>
+          <button
+            onClick={() => setTab('register')}
+            className={`flex-1 flex items-center justify-center gap-2 py-3 text-sm font-semibold transition-colors
+              ${tab === 'register'
+                ? 'text-terra-dark dark:text-terra-light border-b-2 border-terra-forest'
+                : 'text-gray-400 hover:text-terra-medium'
+              }`}
+          >
+            <UserPlus size={15} />
+            Créer un compte
+          </button>
         </div>
+
+        {/* Login form */}
+        {tab === 'login' && (
+          <div className="px-6 py-6">
+            <p className="text-xs text-gray-500 mb-5">
+              Agriculteurs, Ministère, Admin et particuliers
+            </p>
+            <form onSubmit={handleLogin} className="flex flex-col gap-4">
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
+                  Adresse email
+                </label>
+                <input
+                  type="email" required
+                  value={loginEmail} onChange={e => setLoginEmail(e.target.value)}
+                  placeholder="vous@exemple.ml"
+                  className="w-full bg-terra-bg dark:bg-terra-forest border border-terra-border dark:border-terra-medium rounded-lg px-3 py-2.5 text-sm text-terra-dark dark:text-[#e8f5e4] focus:outline-none focus:ring-2 focus:ring-terra-medium transition"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
+                  Mot de passe
+                </label>
+                <div className="relative">
+                  <input
+                    type={loginShowPwd ? 'text' : 'password'} required
+                    value={loginPassword} onChange={e => setLoginPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full bg-terra-bg dark:bg-terra-forest border border-terra-border dark:border-terra-medium rounded-lg px-3 py-2.5 text-sm text-terra-dark dark:text-[#e8f5e4] focus:outline-none focus:ring-2 focus:ring-terra-medium transition pr-10"
+                  />
+                  <button type="button" onClick={() => setLoginShowPwd(s => !s)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-terra-medium">
+                    {loginShowPwd ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+              </div>
+              {loginError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-xs text-red-600 font-medium">
+                  {loginError}
+                </div>
+              )}
+              <button type="submit" disabled={loginLoading}
+                className="flex items-center justify-center gap-2 bg-terra-dark text-terra-gold font-bold rounded-lg py-3 hover:bg-terra-forest transition-colors disabled:opacity-60 mt-1">
+                {loginLoading && <Loader2 size={15} className="animate-spin" />}
+                {loginLoading ? 'Connexion...' : 'Accéder à mon espace →'}
+              </button>
+            </form>
+            <p className="text-center text-xs text-gray-400 mt-4">
+              Pas encore de compte ?{' '}
+              <button onClick={() => setTab('register')} className="text-terra-medium hover:text-terra-forest font-semibold">
+                Créer un compte
+              </button>
+            </p>
+          </div>
+        )}
+
+        {/* Register form */}
+        {tab === 'register' && (
+          <div className="px-6 py-6">
+            <p className="text-xs text-gray-500 mb-5">
+              Créez votre espace pour sauvegarder vos analyses de terrain
+            </p>
+            <form onSubmit={handleRegister} className="flex flex-col gap-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
+                    Prénom *
+                  </label>
+                  <input
+                    type="text" required
+                    value={regPrenom} onChange={e => setRegPrenom(e.target.value)}
+                    placeholder="Amadou"
+                    className="w-full bg-terra-bg dark:bg-terra-forest border border-terra-border dark:border-terra-medium rounded-lg px-3 py-2.5 text-sm text-terra-dark dark:text-[#e8f5e4] focus:outline-none focus:ring-2 focus:ring-terra-medium transition"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
+                    Nom
+                  </label>
+                  <input
+                    type="text"
+                    value={regNom} onChange={e => setRegNom(e.target.value)}
+                    placeholder="Keita"
+                    className="w-full bg-terra-bg dark:bg-terra-forest border border-terra-border dark:border-terra-medium rounded-lg px-3 py-2.5 text-sm text-terra-dark dark:text-[#e8f5e4] focus:outline-none focus:ring-2 focus:ring-terra-medium transition"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
+                  Adresse email *
+                </label>
+                <input
+                  type="email" required
+                  value={regEmail} onChange={e => setRegEmail(e.target.value)}
+                  placeholder="vous@exemple.ml"
+                  className="w-full bg-terra-bg dark:bg-terra-forest border border-terra-border dark:border-terra-medium rounded-lg px-3 py-2.5 text-sm text-terra-dark dark:text-[#e8f5e4] focus:outline-none focus:ring-2 focus:ring-terra-medium transition"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wide text-gray-500 mb-1.5">
+                  Mot de passe *
+                </label>
+                <div className="relative">
+                  <input
+                    type={regShowPwd ? 'text' : 'password'} required minLength={6}
+                    value={regPassword} onChange={e => setRegPassword(e.target.value)}
+                    placeholder="6 caractères minimum"
+                    className="w-full bg-terra-bg dark:bg-terra-forest border border-terra-border dark:border-terra-medium rounded-lg px-3 py-2.5 text-sm text-terra-dark dark:text-[#e8f5e4] focus:outline-none focus:ring-2 focus:ring-terra-medium transition pr-10"
+                  />
+                  <button type="button" onClick={() => setRegShowPwd(s => !s)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-terra-medium">
+                    {regShowPwd ? <EyeOff size={15} /> : <Eye size={15} />}
+                  </button>
+                </div>
+              </div>
+              {regError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg px-3 py-2 text-xs text-red-600 font-medium">
+                  {regError}
+                </div>
+              )}
+              <button type="submit" disabled={regLoading}
+                className="flex items-center justify-center gap-2 bg-terra-forest text-white font-bold rounded-lg py-3 hover:bg-terra-dark transition-colors disabled:opacity-60 mt-1">
+                {regLoading && <Loader2 size={15} className="animate-spin" />}
+                {regLoading ? 'Création...' : 'Créer mon compte →'}
+              </button>
+            </form>
+            <p className="text-center text-xs text-gray-400 mt-4">
+              Déjà un compte ?{' '}
+              <button onClick={() => setTab('login')} className="text-terra-medium hover:text-terra-forest font-semibold">
+                Se connecter
+              </button>
+            </p>
+          </div>
+        )}
       </div>
     </div>
   )

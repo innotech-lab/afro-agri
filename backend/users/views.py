@@ -9,6 +9,45 @@ from django.contrib.auth.hashers import check_password
 from django.db.models import Count, Avg
 
 
+class RegisterView(APIView):
+    """Register a new particulier account."""
+
+    def post(self, request):
+        nom = request.data.get('nom', '')
+        prenom = request.data.get('prenom', '')
+        email = request.data.get('email', '')
+        password = request.data.get('password', '')
+
+        if not prenom or not email or not password:
+            return Response({'error': 'prenom, email et password requis'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if User.objects.filter(email=email).exists():
+            return Response({'error': 'Un compte existe déjà avec cet email'}, status=status.HTTP_409_CONFLICT)
+
+        try:
+            from type_user.models import TypeUser
+            type_particulier = TypeUser.objects.get(type='particulier')
+        except TypeUser.DoesNotExist:
+            return Response({'error': 'Type particulier non configuré'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        user = User.objects.create(
+            nom=nom,
+            prenom=prenom,
+            email=email,
+            password=make_password(password),
+            id_type=type_particulier,
+        )
+
+        if hasattr(request, 'session'):
+            request.session['user_id'] = user.id_user
+            request.session['id_type'] = 'particulier'
+
+        return Response(
+            {'message': 'Compte créé', 'user_id': user.id_user, 'id_type': 'particulier', 'prenom': user.prenom or '', 'nom': user.nom or ''},
+            status=status.HTTP_201_CREATED,
+        )
+
+
 class LoginView(APIView):
     """Authenticate a user and store `user_id` and `id_type` in session."""
 
@@ -32,7 +71,7 @@ class LoginView(APIView):
             request.session['user_id'] = user.id_user
             request.session['id_type'] = getattr(user.id_type, 'type', '')
 
-        return Response({'message': 'Authenticated', 'user_id': user.id_user, 'id_type': getattr(user.id_type, 'type', '')})
+        return Response({'message': 'Authenticated', 'user_id': user.id_user, 'id_type': getattr(user.id_type, 'type', ''), 'prenom': user.prenom or '', 'nom': user.nom or ''})
 
 
 class LogoutView(APIView):
@@ -40,6 +79,49 @@ class LogoutView(APIView):
         if hasattr(request, 'session'):
             request.session.flush()
         return Response({'message': 'Logged out'})
+
+
+class DashboardParticulierView(APIView):
+    """Dashboard for particulier users — their own diagnostic history."""
+
+    def get(self, request):
+        id_type = request.session.get('id_type') if hasattr(request, 'session') else None
+        user_id = request.session.get('user_id') if hasattr(request, 'session') else None
+
+        if not id_type or str(id_type).strip().lower() != 'particulier':
+            return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+
+        from django.db import connection
+
+        with connection.cursor() as cur:
+            cur.execute(
+                '''SELECT dr.id_diagnostic, dr.image, dr.maladie_detectee, dr.confiance,
+                          dr.traitement_suggere, dr.source_github, dr.created_at,
+                          jp.stade_croissance, jp.date_observation
+                   FROM diagnostic_result dr
+                   JOIN journal_plante jp ON jp.id_journal = dr.id_journal
+                   WHERE jp.id_user = %s
+                   ORDER BY dr.created_at DESC
+                   LIMIT 50''',
+                [user_id],
+            )
+            cols = [c[0] for c in cur.description]
+            history = [dict(zip(cols, row)) for row in cur.fetchall()]
+
+        for entry in history:
+            if entry.get('created_at'):
+                entry['created_at'] = str(entry['created_at'])
+            if entry.get('date_observation'):
+                entry['date_observation'] = str(entry['date_observation'])
+            if entry.get('image'):
+                entry['image'] = f"/media/{entry['image']}" if not str(entry['image']).startswith('/') else entry['image']
+
+        return Response({
+            'id_type': 'particulier',
+            'user_id': user_id,
+            'total_analyses': len(history),
+            'history': history,
+        })
 
 
 class DashboardMinisterView(APIView):

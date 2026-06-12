@@ -7,4 +7,4 @@ class TypeUser(models.Model):
 
     class Meta:
         db_table = 'type_user'
-        managed = False
+        managed = True

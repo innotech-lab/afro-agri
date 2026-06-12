@@ -6,6 +6,7 @@ const ROLE_ROUTES = {
   agriculteur: '/dashboard/agriculteur',
   minister:    '/dashboard/ministere',
   admin:       '/dashboard/admin',
+  particulier: '/dashboard/particulier',
 }
 
 export default function ProtectedRoute({ allowedRole, children }) {
@@ -16,7 +17,7 @@ export default function ProtectedRoute({ allowedRole, children }) {
   const userRole = user.id_type?.toLowerCase()
 
   if (allowedRole && userRole !== allowedRole) {
-    const redirect = ROLE_ROUTES[userRole] ?? '/login'
+    const redirect = ROLE_ROUTES[userRole] ?? '/'
     return <Navigate to={redirect} replace />
   }
 
