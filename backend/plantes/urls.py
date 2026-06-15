@@ -1,6 +1,10 @@
-from django.urls import path
-from .views import PlanteView
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import PlanteViewSet
+
+router = DefaultRouter()
+router.register(r'', PlanteViewSet, basename='plante')
 
 urlpatterns = [
-    path('', PlanteView.as_view()),
+    path('', include(router.urls)),
 ]

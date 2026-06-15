@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AfroAgri — Gestion des Plantes</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: #f0f4f0; color: #333; }
+
+        header {
+            background: #2e7d32;
+            color: white;
+            padding: 16px 20px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .container { max-width: 600px; margin: 24px auto; padding: 0 16px; }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .card h3 { color: #2e7d32; margin-bottom: 16px; font-size: 16px; }
+
+        .form-group { margin-bottom: 14px; }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 4px;
+            font-weight: bold;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 15px;
+            background: #fafafa;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #2e7d32;
+            background: white;
+        }
+
+        .form-group input[readonly] {
+            background: #f0f0f0;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            min-width: 100px;
+        }
+
+        .btn-green  { background: #2e7d32; color: white; }
+        .btn-blue   { background: #1565c0; color: white; }
+        .btn-orange { background: #e65100; color: white; }
+        .btn-grey   { background: #9e9e9e; color: white; }
+        .btn-red    { background: #c62828; color: white; }
+        .btn:hover  { opacity: 0.9; }
+
+        /* Statut */
+        #status-msg {
+            margin-top: 12px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+        }
+        .msg-success { background: #e8f5e9; color: #2e7d32; border-left: 4px solid #2e7d32; }
+        .msg-error   { background: #ffebee; color: #c62828; border-left: 4px solid #c62828; }
+
+        /* Table liste */
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { background: #2e7d32; color: white; padding: 10px 8px; text-align: left; }
+        td { padding: 9px 8px; border-bottom: 1px solid #f0f0f0; }
+        tr:hover td { background: #f9fbe7; }
+
+        .action-btn {
+            padding: 4px 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-right: 4px;
+        }
+        .edit-btn   { background: #1565c0; color: white; }
+        .delete-btn { background: #c62828; color: white; }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        #search-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .empty-msg { text-align: center; color: #999; padding: 20px; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<header>🌿 AfroAgri — Gestion des Plantes</header>
+
+<div class="container">
+
+    <!-- FORMULAIRE SAISIE -->
+    <div class="card">
+        <h3 id="form-title">➕ Ajouter une Plante</h3>
+
+        <div class="form-group">
+            <label>ID Plante (auto)</label>
+            <input type="text" id="id_plante" readonly placeholder="Généré automatiquement">
+        </div>
+
+        <div class="form-group">
+            <label>ID Champ *</label>
+            <input type="number" id="id_champ" placeholder="Ex: 1" min="1">
+        </div>
+
+        <div class="form-group">
+            <label>Nom de la Plante *</label>
+            <input type="text" id="nom_plante" placeholder="Ex: Tomate, Maïs, Manioc...">
+        </div>
+
+        <div class="form-group">
+            <label>Variété *</label>
+            <input type="text" id="variete" placeholder="Ex: Roma, Jaune, Local...">
+        </div>
+
+        <div class="form-group">
+            <label>Date de Plantation *</label>
+            <input type="date" id="date_plantation">
+        </div>
+
+        <div class="form-group">
+            <label>Créé le (auto)</label>
+            <input type="text" id="created_at" readonly placeholder="Généré automatiquement">
+        </div>
+
+        <div class="form-group">
+            <label>Mis à jour le (auto)</label>
+            <input type="text" id="updated_at" readonly placeholder="Généré automatiquement">
+        </div>
+
+        <div class="btn-row">
+            <button class="btn btn-green" onclick="enregistrer()">💾 Enregistrer</button>
+            <button class="btn btn-grey"  onclick="reinitialiser()">🔄 Réinitialiser</button>
+        </div>
+
+        <div id="status-msg"></div>
+    </div>
+
+    <!-- LISTE DES PLANTES -->
+    <div class="card">
+        <h3>📋 Liste des Plantes <span class="badge" id="total-badge">0</span></h3>
+
+        <input type="text" id="search-input" placeholder="🔍 Rechercher par nom ou variété..." oninput="filtrerListe()">
+
+        <div id="table-container">
+            <div class="empty-msg">Chargement...</div>
+        </div>
+
+        <div class="btn-row" style="margin-top: 12px;">
+            <button class="btn btn-blue" onclick="chargerPlantes()">🔄 Actualiser</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const API = 'http://127.0.0.1:8000/api/plantes/';
+    let plantes = [];
+    let modeEdition = false;
+    let idEdition = null;
+
+    // Charger la liste au démarrage
+    document.addEventListener('DOMContentLoaded', chargerPlantes);
+
+    async function chargerPlantes() {
+        try {
+            const resp = await fetch(API);
+            plantes = await resp.json();
+            afficherListe(plantes);
+        } catch (e) {
+            afficherListe([]);
+        }
+    }
+
+    function afficherListe(data) {
+        const container = document.getElementById('table-container');
+        document.getElementById('total-badge').textContent = data.length;
+
+        if (data.length === 0) {
+            container.innerHTML = '<div class="empty-msg">Aucune plante enregistrée.</div>';
+            return;
+        }
+
+        let html = `<table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nom</th>
+                    <th>Variété</th>
+                    <th>Date plantation</th>
+                    <th>ID Champ</th>
+                    <th>Actions</th>
+                </tr>
+            </thead><tbody>`;
+
+        data.forEach(p => {
+            html += `<tr>
+                <td>${p.id_plante}</td>
+                <td>${p.nom_plante}</td>
+                <td>${p.variete}</td>
+                <td>${p.date_plantation}</td>
+                <td>${p.id_champ}</td>
+                <td>
+                    <button class="action-btn edit-btn"   onclick="chargerEdition(${p.id_plante})">✏️ Éditer</button>
+                    <button class="action-btn delete-btn" onclick="supprimer(${p.id_plante})">🗑️ Suppr.</button>
+                </td>
+            </tr>`;
+        });
+
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    }
+
+    function filtrerListe() {
+        const q = document.getElementById('search-input').value.toLowerCase();
+        const filtrees = plantes.filter(p =>
+            p.nom_plante.toLowerCase().includes(q) ||
+            p.variete.toLowerCase().includes(q)
+        );
+        afficherListe(filtrees);
+    }
+
+    async function enregistrer() {
+        const id_champ       = document.getElementById('id_champ').value.trim();
+        const nom_plante     = document.getElementById('nom_plante').value.trim();
+        const variete        = document.getElementById('variete').value.trim();
+        const date_plantation= document.getElementById('date_plantation').value;
+
+        if (!id_champ || !nom_plante || !variete || !date_plantation) {
+            afficherStatus('❌ Tous les champs obligatoires (*) doivent être remplis.', 'error');
+            return;
+        }
+
+        const body = { id_champ, nom_plante, variete, date_plantation };
+
+        try {
+            let resp;
+            if (modeEdition) {
+                resp = await fetch(`${API}${idEdition}/`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+            } else {
+                resp = await fetch(API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+            }
+
+            const data = await resp.json();
+
+            if (resp.ok) {
+                afficherStatus(
+                    modeEdition
+                        ? `✅ Plante #${data.id_plante} modifiée avec succès.`
+                        : `✅ Plante "${data.nom_plante}" créée avec succès (ID: ${data.id_plante}).`,
+                    'success'
+                );
+                reinitialiser();
+                chargerPlantes();
+            } else {
+                const erreurs = Object.entries(data).map(([k, v]) => `${k}: ${v}`).join(' | ');
+                afficherStatus('❌ ' + erreurs, 'error');
+            }
+        } catch (e) {
+            afficherStatus('❌ Serveur inaccessible.', 'error');
+        }
+    }
+
+    function chargerEdition(id) {
+        const p = plantes.find(x => x.id_plante === id);
+        if (!p) return;
+
+        document.getElementById('form-title').textContent = `✏️ Modifier la Plante #${id}`;
+        document.getElementById('id_plante').value      = p.id_plante;
+        document.getElementById('id_champ').value       = p.id_champ;
+        document.getElementById('nom_plante').value     = p.nom_plante;
+        document.getElementById('variete').value        = p.variete;
+        document.getElementById('date_plantation').value= p.date_plantation;
+        document.getElementById('created_at').value     = p.created_at ? p.created_at.replace('T', ' ').slice(0, 19) : '';
+        document.getElementById('updated_at').value     = p.updated_at ? p.updated_at.replace('T', ' ').slice(0, 19) : '';
+
+        modeEdition = true;
+        idEdition   = id;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function supprimer(id) {
+        if (!confirm(`Supprimer la plante #${id} ?`)) return;
+        try {
+            const resp = await fetch(`${API}${id}/`, { method: 'DELETE' });
+            if (resp.status === 204) {
+                afficherStatus(`✅ Plante #${id} supprimée.`, 'success');
+                chargerPlantes();
+            } else {
+                afficherStatus('❌ Erreur lors de la suppression.', 'error');
+            }
+        } catch (e) {
+            afficherStatus('❌ Serveur inaccessible.', 'error');
+        }
+    }
+
+    function reinitialiser() {
+        document.getElementById('form-title').textContent = '➕ Ajouter une Plante';
+        document.getElementById('id_plante').value       = '';
+        document.getElementById('id_champ').value        = '';
+        document.getElementById('nom_plante').value      = '';
+        document.getElementById('variete').value         = '';
+        document.getElementById('date_plantation').value = '';
+        document.getElementById('created_at').value      = '';
+        document.getElementById('updated_at').value      = '';
+        modeEdition = false;
+        idEdition   = null;
+    }
+
+    function afficherStatus(msg, type) {
+        const el = document.getElementById('status-msg');
+        el.textContent = msg;
+        el.className = type === 'success' ? 'msg-success' : 'msg-error';
+        el.style.display = 'block';
+        setTimeout(() => { el.style.display = 'none'; }, 4000);
+    }
+</script>
+
+</body>
+</html>

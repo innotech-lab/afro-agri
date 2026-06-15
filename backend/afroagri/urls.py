@@ -7,6 +7,7 @@ from users.views import DashboardMinisterView, DashboardAdminView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api-tester/', TemplateView.as_view(template_name='api_tester.html')),
     path('api/type-users/', include('type_user.urls')),
     path('api/users/', include('users.urls')),
     path('api/DashboardMinister', DashboardMinisterView.as_view()),

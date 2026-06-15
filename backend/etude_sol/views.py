@@ -1,12 +1,17 @@
+from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import EtudeSol
 from .serializers import EtudeSolSerializer
 
+
 class EtudeSolView(APIView):
     def get(self, request):
         etudes = EtudeSol.objects.all()
+        id_champ = request.query_params.get('id_champ')
+        if id_champ:
+            etudes = etudes.filter(id_champ=id_champ)
         return Response(EtudeSolSerializer(etudes, many=True).data)
 
     def post(self, request):
@@ -15,3 +20,29 @@ class EtudeSolView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class EtudeSolDetailView(APIView):
+    def get_object(self, pk):
+        return get_object_or_404(EtudeSol, pk=pk)
+
+    def get(self, request, pk):
+        return Response(EtudeSolSerializer(self.get_object(pk)).data)
+
+    def put(self, request, pk):
+        serializer = EtudeSolSerializer(self.get_object(pk), data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        serializer = EtudeSolSerializer(self.get_object(pk), data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        self.get_object(pk).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

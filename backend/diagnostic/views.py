@@ -1,12 +1,50 @@
 import uuid
 import datetime
 from django.db import connection
+from django.shortcuts import get_object_or_404
 from django.core.files.storage import default_storage
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.parsers import MultiPartParser, FormParser
+from .models import DiagnosticResult
+from .serializers import DiagnosticResultSerializer
 from .ia_service import diagnostiquer
+
+
+class DiagnosticListView(APIView):
+    def get(self, request):
+        diagnostics = DiagnosticResult.objects.all()
+        id_journal = request.query_params.get('id_journal')
+        if id_journal:
+            diagnostics = diagnostics.filter(id_journal=id_journal)
+        return Response(DiagnosticResultSerializer(diagnostics, many=True).data)
+
+
+class DiagnosticDetailView(APIView):
+    def get_object(self, pk):
+        return get_object_or_404(DiagnosticResult, pk=pk)
+
+    def get(self, request, pk):
+        return Response(DiagnosticResultSerializer(self.get_object(pk)).data)
+
+    def put(self, request, pk):
+        serializer = DiagnosticResultSerializer(self.get_object(pk), data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, pk):
+        serializer = DiagnosticResultSerializer(self.get_object(pk), data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        self.get_object(pk).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class DiagnosticImageView(APIView):

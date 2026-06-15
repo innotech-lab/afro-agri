@@ -114,3 +114,11 @@ PLANT_DISEASE_DATASET_URL = 'https://raw.githubusercontent.com/spMohanty/PlantVi
 
 # CORS - autoriser toutes les origines en développement
 CORS_ALLOW_ALL_ORIGINS = True
+
+# Django REST Framework - activer le Browsable API
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ]
+}

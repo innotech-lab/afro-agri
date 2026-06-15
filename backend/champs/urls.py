@@ -1,7 +1,10 @@
-from django.urls import path
-from .views import ChampListCreateView, ChampDetailView
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import ChampViewSet
+
+router = DefaultRouter()
+router.register(r'', ChampViewSet, basename='champ')
 
 urlpatterns = [
-    path('', ChampListCreateView.as_view()),
-    path('<int:id_champ>/', ChampDetailView.as_view()),
+    path('', include(router.urls)),
 ]
