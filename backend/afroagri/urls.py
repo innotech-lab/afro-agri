@@ -20,4 +20,5 @@ urlpatterns = [
     path('api/etude-sol/', include('etude_sol.urls')),
     path('api/diagnostic/', include('diagnostic.urls')),
     path('diagnostic/', TemplateView.as_view(template_name='diagnostic.html')),
+    path('etude-sol/', TemplateView.as_view(template_name='etude_sol.html')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

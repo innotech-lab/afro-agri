@@ -446,7 +446,7 @@
         formData.append('stade', document.getElementById('stade').value || 'non renseigne');
 
         try {
-            const resp = await fetch('http://127.0.0.1:8000/api/journal/analyser-image/', {
+            const resp = await fetch('/api/diagnostic/analyser/', {
                 method: 'POST',
                 body: formData
             });
