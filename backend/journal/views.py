@@ -159,8 +159,10 @@ class PlantDiseaseGithubView(APIView):
 class AnalyserImageView(APIView):
     """
     POST /api/journal/analyser-image/
-    Analyse l'image via IA, cree le journal_plante et retourne les suggestions.
-    Form-data: { image, nom_plante (optionnel), stade (optionnel) }
+    Analyse l'image via IA et enregistre automatiquement le journal_plante.
+    Retourne directement le journal enregistré (AUCUNE confirmation utilisateur).
+    
+    Form-data: { image, nom_plante (optionnel), latitude (optionnel), longitude (optionnel) }
     """
     parser_classes = [MultiPartParser, FormParser]
 
@@ -170,13 +172,52 @@ class AnalyserImageView(APIView):
             return Response({'error': 'Image requise.'}, status=status.HTTP_400_BAD_REQUEST)
 
         nom_plante = request.data.get('nom_plante', 'plante inconnue')
-        stade      = request.data.get('stade', 'non renseigne')
-        today      = __import__('datetime').date.today()
-        session    = str(uuid.uuid4())[:20]
+        latitude = request.data.get('latitude', None)
+        longitude = request.data.get('longitude', None)
+        
+        try:
+            latitude = float(latitude) if latitude is not None else None
+            longitude = float(longitude) if longitude is not None else None
+        except (ValueError, TypeError):
+            latitude, longitude = None, None
 
+        # LOG: Déboguer les coordonnées reçues
+        print(f'[BACKEND] AnalyserImageView reçu: latitude={latitude}, longitude={longitude}')
+
+        # Validation: coordonnées doivent être présentes et valides
+        if latitude is None or longitude is None:
+            print(f'[BACKEND] ❌ Coordonnées manquantes!')
+            return Response(
+                {'error': 'Latitude et longitude sont requises.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Vérifier que ce ne sont pas des 0.0 purs
+        if latitude == 0.0 and longitude == 0.0:
+            print(f'[BACKEND] ❌ Coordonnées 0,0 invalides!')
+            return Response(
+                {'error': 'Coordonnées GPS invalides (0,0). Veuillez autoriser la localisation.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Vérifier la plage valide
+        if not (-90 <= latitude <= 90 and -180 <= longitude <= 180):
+            print(f'[BACKEND] ❌ Coordonnées hors limites!')
+            return Response(
+                {'error': f'Coordonnées GPS hors limites: {latitude}, {longitude}'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        print(f'[BACKEND] ✅ Coordonnées valides: {latitude}, {longitude}')
+
+        today = __import__('datetime').date.today()
+        session = str(uuid.uuid4())[:20]
+
+        # Analyse IA complète avec extraction automatique de stade, symptômes, ravageurs
         resultat = diagnostiquer(image, nom_plante)
 
         with connection.cursor() as cursor:
+            # Créer/récupérer type_user
             cursor.execute('SELECT id_type FROM type_user LIMIT 1')
             row = cursor.fetchone()
             if not row:
@@ -185,17 +226,19 @@ class AnalyserImageView(APIView):
                 row = cursor.fetchone()
             id_type = row[0]
 
+            # Créer/récupérer user par défaut
             cursor.execute('SELECT id_user FROM users LIMIT 1')
             row = cursor.fetchone()
             if not row:
                 cursor.execute(
-                    "INSERT INTO users (prenom, id_type, email, password, created_date) VALUES ('admin', %s, 'admin@afroagri.com', 'admin', NOW())",
+                    "INSERT INTO users (prenom, id_type, email, password, created_date) VALUES ('agriculteur_mobile', %s, 'mobile@afroagri.com', 'mobile', NOW())",
                     [id_type]
                 )
                 cursor.execute('SELECT id_user FROM users LIMIT 1')
                 row = cursor.fetchone()
             id_user = row[0]
 
+            # Créer/récupérer champ par défaut
             cursor.execute('SELECT id_champ FROM champs LIMIT 1')
             row = cursor.fetchone()
             if not row:
@@ -206,43 +249,76 @@ class AnalyserImageView(APIView):
                 row = cursor.fetchone()
             id_champ = row[0]
 
-            cursor.execute('SELECT id_plante FROM plantes WHERE nom_plante = %s LIMIT 1', [nom_plante])
+            # Créer/récupérer plante
+            nom_plante_clean = resultat['plante_detectee'] or nom_plante
+            cursor.execute(
+                'SELECT id_plante FROM plantes WHERE nom_plante LIKE %s LIMIT 1',
+                [f'%{nom_plante_clean}%']
+            )
             row = cursor.fetchone()
             if not row:
                 cursor.execute(
                     "INSERT INTO plantes (nom_plante, variete, date_plantation, id_champ, updated_at) VALUES (%s, %s, %s, %s, NOW())",
-                    [nom_plante, today, today, id_champ]
+                    [nom_plante_clean, 'variété détectée', today, id_champ]
                 )
-                cursor.execute('SELECT id_plante FROM plantes WHERE nom_plante = %s LIMIT 1', [nom_plante])
+                cursor.execute(
+                    'SELECT id_plante FROM plantes WHERE nom_plante LIKE %s LIMIT 1',
+                    [f'%{nom_plante_clean}%']
+                )
                 row = cursor.fetchone()
             id_plante = row[0]
 
+            # ENREGISTREMENT AUTOMATIQUE avec données IA extraites et GPS du mobile
+            print(f'[BACKEND] Enregistrement journal avec: stade={resultat["stade_croissance"]}, symptomes={resultat["symptomes"]}, lat={latitude}, lon={longitude}')
             cursor.execute(
                 '''INSERT INTO journal_plante
                    (id_plante, date_observation, stade_croissance, symptomes,
                     ravageur_suspecte, maladie_suspecte, id_user,
                     session_uuid, longitude, latitude, updated_at)
-                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 0.0, 0.0, NOW())''',
-                [id_plante, today, stade,
-                 resultat['classe_complete'],
-                 'inconnu',
-                 resultat['maladie_detectee'],
-                 id_user, session]
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW())''',
+                [
+                    id_plante,
+                    today,
+                    resultat['stade_croissance'],  # Généré par IA
+                    resultat['symptomes'],         # Généré par IA
+                    resultat['ravageur_suspecte'], # Généré par IA
+                    resultat['maladie_detectee'],
+                    id_user,
+                    session,
+                    longitude,  # Du téléphone - IMPORTANT!
+                    latitude    # Du téléphone - IMPORTANT!
+                ]
             )
             id_journal = cursor.lastrowid
+            print(f'[BACKEND] ✅ Journal enregistré: id_journal={id_journal}')
 
+            # Récupérer le journal enregistré pour confirmation
+            cursor.execute(
+                'SELECT id_journal, date_observation, stade_croissance, symptomes, ravageur_suspecte, maladie_suspecte, longitude, latitude FROM journal_plante WHERE id_journal = %s',
+                [id_journal]
+            )
+            cols = [c[0] for c in cursor.description]
+            row = cursor.fetchone()
+            journal_data = dict(zip(cols, row)) if row else {}
+
+        # Retourner le journal enregistré avec les infos IA pour affichage
         return Response({
+            'success': True,
+            'message': f'Journal #{id_journal} enregistré automatiquement',
             'id_journal': id_journal,
-            'suggestions_ia': {
-                'plante_detectee': resultat['plante_detectee'],
-                'maladie_suspecte': resultat['maladie_detectee'],
-                'symptomes': resultat['classe_complete'],
-                'traitement_suggere': resultat['traitement_suggere'],
+            'journal': journal_data,
+            'latitude': latitude,
+            'longitude': longitude,
+            'ia_analysis': {
+                'plante': resultat['plante_detectee'],
+                'maladie': resultat['maladie_detectee'],
+                'traitement': resultat['traitement_suggere'],
                 'confiance': resultat['confiance'],
                 'est_saine': resultat['est_saine'],
-                'source': resultat['github'],
+                'github': resultat['github'],
             }
         }, status=status.HTTP_201_CREATED)
+
 
 
 class ConfirmerIAView(APIView):
@@ -316,3 +392,26 @@ class EnrichJournalPlanteView(APIView):
             'journal': JournalPlanteSerializer(journal).data,
             'suggestions_github': suggestions,
         })
+
+
+class ScanQRCodeView(APIView):
+    """
+    GET /api/journal/scan/<code>/
+    Recherche les journaux correspondant au code scanné.
+    Le code peut être : id_journal, id_plante (numérique) ou un nom de plante.
+    """
+    def get(self, request, code):
+        # essayer comme entier (id_journal ou id_plante)
+        qs = None
+        try:
+            num = int(code)
+            qs = JournalPlante.objects.filter(id_journal=num)
+            if not qs.exists():
+                qs = JournalPlante.objects.filter(id_plante__id_plante=num)
+        except ValueError:
+            qs = JournalPlante.objects.filter(id_plante__nom_plante__icontains=code)
+
+        data = JournalPlanteSerializer(qs, many=True).data
+        if not data:
+            return Response({'error': 'Aucun journal trouvé pour ce code.'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'resultats': data})

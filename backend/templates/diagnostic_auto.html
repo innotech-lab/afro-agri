@@ -190,15 +190,6 @@
             0%, 50%, 100% { opacity: 1; }
             25%, 75% { opacity: 0.4; }
         }
-
-        .map-container {
-            width: 100%;
-            height: 260px;
-            border-radius: 12px;
-            overflow: hidden;
-            margin-top: 14px;
-            border: 1px solid #ddd;
-        }
     </style>
 </head>
 <body>
@@ -213,10 +204,7 @@
         <input type="text" id="nom-plante" placeholder="Ex: tomate, pomme, raisin...">
         <div class="geo-status">
             <span class="geo-indicator active"></span>
-            <span id="geo-text">Cliquez sur "Activer localisation" puis autorisez le GPS du navigateur.</span>
-        </div>
-        <div class="btn-row" style="margin-top: 12px;">
-            <button class="btn btn-blue" id="btn-gps-refresh">📍 Activer localisation</button>
+            <span id="geo-text">Localisation en cours...</span>
         </div>
     </div>
 
@@ -266,132 +254,31 @@
     const resultDiv  = document.getElementById('result');
     const nomPlanteInput = document.getElementById('nom-plante');
     const geoText    = document.getElementById('geo-text');
-    const btnGpsRefresh = document.getElementById('btn-gps-refresh');
 
     let stream = null;
     let capturedBlob = null;
-    let latitude = null;
-    let longitude = null;
+    let latitude = 0.0;
+    let longitude = 0.0;
 
-    // === FONCTION PRINCIPALE: Récupérer GPS natif ===
-    async function getGPSCoordinates() {
-        console.log('[GPS] Début de la récupération GPS');
-        const nativeGps = await getNativeGeolocation();
-        if (!nativeGps) {
-            console.warn('[GPS] Aucune position native récupérée');
-            geoText.textContent = '❌ Impossible de récupérer une position GPS réelle. Autorisez la localisation.';
-            return false;
-        }
-
-        latitude = nativeGps.lat;
-        longitude = nativeGps.lon;
-        geoText.textContent = `✅ Localisation réelle: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
-        console.log('[GPS] GPS natif réussi:', { latitude, longitude });
-        return true;
-    }
-
-    // === GPS natif ===
-    function getNativeGeolocation() {
-        return new Promise(resolve => {
-            if (!navigator.geolocation) {
-                console.log('[GPS] navigator.geolocation non disponible');
-                geoText.textContent = '❌ Géolocalisation non supportée par le navigateur.';
-                return resolve(null);
-            }
-
-            geoText.textContent = '🔄 Demande GPS natif...';
+    // --- Géolocalisation automatique ---
+    function requestGeolocation() {
+        if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 position => {
-                    const lat = position.coords.latitude;
-                    const lon = position.coords.longitude;
-                    console.log('[GPS] Succès GPS natif:', { lat, lon, accuracy: position.coords.accuracy });
-                    if (!isValidCoordinates(lat, lon)) {
-                        console.warn('[GPS] Coordonnées invalides:', { lat, lon });
-                        return resolve(null);
-                    }
-                    resolve({ lat, lon });
+                    latitude = position.coords.latitude;
+                    longitude = position.coords.longitude;
+                    geoText.textContent = `📍 ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
                 },
                 error => {
-                    console.warn('[GPS] Erreur GPS natif:', error.code, error.message);
-                    if (error.code === error.PERMISSION_DENIED) {
-                        geoText.textContent = '❌ Permission refusée. Activez la localisation dans le navigateur.';
-                    } else if (error.code === error.POSITION_UNAVAILABLE) {
-                        geoText.textContent = '❌ Position introuvable. Vérifiez que le GPS est activé.';
-                    } else if (error.code === error.TIMEOUT) {
-                        geoText.textContent = '❌ Délai GPS dépassé. Réessayez.';
-                    } else {
-                        geoText.textContent = '❌ Erreur de localisation GPS.';
-                    }
-                    resolve(null);
-                },
-                {
-                    enableHighAccuracy: true,
-                    timeout: 15000,
-                    maximumAge: 0,
+                    console.warn('Géolocalisation refusée:', error.message);
+                    geoText.textContent = '📍 Géolocalisation non disponible';
                 }
             );
-        });
-    }
-
-    // === Validation GPS ===
-    function isValidCoordinates(lat, lon) {
-        return (
-            typeof lat === 'number' && typeof lon === 'number' &&
-            !isNaN(lat) && !isNaN(lon) &&
-            lat !== 0 && lon !== 0 &&
-            lat >= -90 && lat <= 90 &&
-            lon >= -180 && lon <= 180
-        );
-    }
-
-    async function updateGPSPermissionStatus() {
-        if (!navigator.permissions) {
-            geoText.textContent = 'Cliquez sur "Activer localisation" puis autorisez le GPS du navigateur.';
-            return;
-        }
-
-        try {
-            const status = await navigator.permissions.query({ name: 'geolocation' });
-            console.log('[GPS] État des permissions:', status.state);
-
-            if (status.state === 'granted') {
-                geoText.textContent = '✅ Permission GPS autorisée. Cliquez sur "Activer localisation" pour récupérer vos coordonnées.';
-            } else if (status.state === 'prompt') {
-                geoText.textContent = '📍 Cliquez sur "Activer localisation" pour autoriser la géolocalisation.';
-            } else if (status.state === 'denied') {
-                geoText.textContent = '❌ Permission refusée. Autorisez la géolocalisation dans les paramètres du site pour 127.0.0.1.';
-            }
-
-            status.onchange = () => updateGPSPermissionStatus();
-        } catch (err) {
-            console.warn('[GPS] Impossible de lire l’état des permissions:', err);
-            geoText.textContent = 'Cliquez sur "Activer localisation" puis autorisez le GPS du navigateur.';
         }
     }
 
-    // === Initialisation au chargement ===
-    window.addEventListener('load', async () => {
-        console.log('[INIT] Chargement de la page');
-        await updateGPSPermissionStatus();
-        updateAnalyserButtonState();
-    });
-
-    btnGpsRefresh.addEventListener('click', async () => {
-        btnGpsRefresh.disabled = true;
-        geoText.textContent = '🔄 Demande GPS natif...';
-        const success = await getGPSCoordinates();
-        btnGpsRefresh.disabled = false;
-        await updateGPSPermissionStatus();
-        if (success) {
-            updateAnalyserButtonState();
-        } else {
-            geoText.textContent = '❌ Permission refusée ou localisation impossible. Vérifiez les autorisations du site dans votre navigateur.';
-        }
-    });
-
-    function updateAnalyserButtonState() {
-        btnAnalyser.disabled = !capturedBlob || latitude === null || longitude === null;
-    }
+    // Demander la géolocalisation au chargement
+    window.addEventListener('load', requestGeolocation);
 
     // --- Ouvrir la caméra ---
     btnStart.addEventListener('click', async () => {
@@ -425,7 +312,7 @@
             if (stream) stream.getTracks().forEach(t => t.stop());
             btnCapture.style.display = 'none';
             btnStart.style.display = 'inline-flex';
-            updateAnalyserButtonState();
+            btnAnalyser.disabled = false;
         }, 'image/jpeg', 0.9);
     });
 
@@ -438,9 +325,9 @@
         preview.style.display = 'block';
         video.style.display = 'none';
         if (stream) stream.getTracks().forEach(t => t.stop());
+        btnAnalyser.disabled = false;
         btnCapture.style.display = 'none';
         btnStart.style.display = 'inline-flex';
-        updateAnalyserButtonState();
     });
 
     // --- Analyser et enregistrer automatiquement ---
@@ -452,39 +339,14 @@
         resultDiv.innerHTML = '';
         btnAnalyser.disabled = true;
 
-        // Récupérer GPS au moment du scan
-        const hasGps = await getGPSCoordinates();
-        console.log('[SCAN] Démarrage analyse avec GPS:', { latitude, longitude });
-
-        if (!hasGps) {
-            loader.style.display = 'none';
-            afficherErreur('❌ Permission GPS refusée ou localisation impossible. Autorisez la géolocalisation et réessayez.');
-            btnAnalyser.disabled = false;
-            return;
-        }
-
-        // Vérifier que latitude et longitude existent
-        if (latitude === null || longitude === null) {
-            loader.style.display = 'none';
-            afficherErreur('❌ Erreur: Impossible de récupérer les coordonnées GPS.');
-            btnAnalyser.disabled = false;
-            return;
-        }
-
         const formData = new FormData();
         formData.append('image', capturedBlob, 'plante.jpg');
         formData.append('nom_plante', nomPlanteInput.value || 'plante inconnue');
         formData.append('latitude', latitude);
         formData.append('longitude', longitude);
 
-        console.log('[SCAN] Envoi au serveur:', {
-            latitude,
-            longitude,
-            nom_plante: nomPlanteInput.value,
-        });
-
         try {
-            const resp = await fetch('/api/diagnostic/analyser/', {
+            const resp = await fetch('http://127.0.0.1:8000/api/journal/analyser-image/', {
                 method: 'POST',
                 body: formData
             });
@@ -492,17 +354,14 @@
             loader.style.display = 'none';
 
             if (!resp.ok) {
-                console.error('[SCAN] Erreur serveur:', data);
                 afficherErreur(data.error || 'Erreur serveur.');
                 btnAnalyser.disabled = false;
                 return;
             }
 
-            console.log('[SCAN] Succès serveur:', data);
             afficherSucces(data);
         } catch (e) {
             loader.style.display = 'none';
-            console.error('[SCAN] Erreur réseau:', e);
             afficherErreur('Impossible de contacter le serveur.');
             btnAnalyser.disabled = false;
         }
@@ -511,9 +370,6 @@
     // --- Afficher le succès ---
     function afficherSucces(data) {
         const j = data.journal || {};
-        const latitudeResult = data.latitude !== undefined ? data.latitude : j.latitude;
-        const longitudeResult = data.longitude !== undefined ? data.longitude : j.longitude;
-        console.log('[RESULT] Coordonnées reçues', { latitudeResult, longitudeResult });
         const ia = data.ia_analysis || {};
         const estSaine = ia.est_saine;
 
@@ -559,19 +415,10 @@
                 <span class="info-value">${ia.traitement || 'Consulter un agronome'}</span>
             </div>
             <div class="info-row">
-                <span class="info-label">Coordonnées réelles</span>
-                <span class="info-value">${latitudeResult != null ? latitudeResult : 'N/A'}, ${longitudeResult != null ? longitudeResult : 'N/A'}</span>
+                <span class="info-label">Coordonnées GPS</span>
+                <span class="info-value">${j.latitude || 0}, ${j.longitude || 0}</span>
             </div>
-            <div class="map-container" id="map-container">
-                <iframe
-                    width="100%"
-                    height="100%"
-                    frameborder="0"
-                    style="border:0"
-                    src="https://maps.google.com/maps?q=${latitudeResult},${longitudeResult}&z=13&output=embed"
-                    allowfullscreen>
-                </iframe>
-            </div>
+
             <div class="btn-row" style="margin-top: 16px;">
                 <button class="btn btn-green" onclick="location.reload()">🔄 Nouveau scan</button>
             </div>
@@ -580,11 +427,10 @@
         resultDiv.scrollIntoView({ behavior: 'smooth' });
     }
 
-    // --- Afficher l'erreur ---
     function afficherErreur(msg) {
         resultDiv.innerHTML = `
             <div style="background:#ffebee;border-left:4px solid #c62828;padding:12px;border-radius:6px;color:#c62828;font-size:14px;">
-                ${msg}
+                ❌ ${msg}
             </div>
         `;
         resultDiv.style.display = 'block';

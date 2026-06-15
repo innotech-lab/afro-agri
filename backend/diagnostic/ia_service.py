@@ -128,13 +128,67 @@ def consulter_github(maladie, plante):
     return {'url': '', 'nom': '', 'description': '', 'stars': 0, 'autres_sources': []}
 
 
+def extract_growth_stage(classe, confiance):
+    """Estime le stade de croissance selon la maladie détectée et la confiance."""
+    if 'healthy' in classe.lower():
+        if confiance > 80:
+            return 'floraison'
+        elif confiance > 60:
+            return 'fructification'
+        else:
+            return 'croissance'
+    else:
+        # Maladie détectée = stade avancé
+        return 'fructification'
+
+
+def extract_symptoms(classe):
+    """Extrait les symptômes visibles de la classe détectée."""
+    symptoms_map = {
+        'scab': 'Taches brunes/grises sur feuilles et fruits',
+        'rot': 'Pourriture, décoloration, ramollissement des tissus',
+        'rust': 'Pustules orange-rouges sur les feuilles',
+        'blight': 'Taches nécrotiques progressives, flétrissement',
+        'mildew': 'Poudre blanche/grise, feuilles crispées',
+        'spot': 'Petites taches circulaires, auréoles jaunes',
+        'mites': 'Jaunissement progressif, toiles, points rouges minuscules',
+        'virus': 'Déformation foliaire, mosaïque jaune, nanisme',
+        'healthy': 'Aucun symptôme visible',
+    }
+    
+    lower_classe = classe.lower()
+    for key, symptom in symptoms_map.items():
+        if key in lower_classe:
+            return symptom
+    return 'Symptômes à déterminer'
+
+
+def extract_pests(classe):
+    """Extrait les ravageurs possibles selon la maladie/classe."""
+    pests_map = {
+        'spider_mites': 'Acariens tétranychides',
+        'bacterial': 'Bactéries pathogènes (Xanthomonas)',
+        'powdery': 'Oïdium, acariens',
+        'virus': 'Aleurodes, pucerons (vecteurs)',
+        'blight': 'Potentiel d\'infestation secondaire',
+        'healthy': 'Aucun ravageur détecté',
+    }
+    
+    lower_classe = classe.lower()
+    for key, pest in pests_map.items():
+        if key in lower_classe:
+            return pest
+    return 'Ravageur non identifié'
+
+
 def diagnostiquer(image_file, nom_plante=''):
     """
     Pipeline complet :
     1. Analyse IA de l'image
     2. Extraction maladie + traitement
-    3. Consultation GitHub open source
-    Retourne un dictionnaire de résultats.
+    3. Extraction stade, symptômes, ravageurs
+    4. Consultation GitHub open source
+    Retourne un dictionnaire de résultats exploitables.
     """
     classe, confiance = predict_disease(image_file)
     parties = classe.split('___')
@@ -142,6 +196,12 @@ def diagnostiquer(image_file, nom_plante=''):
     maladie = parties[1].replace('_', ' ') if len(parties) > 1 else 'Inconnue'
     traitement = get_traitement(classe)
     github_info = consulter_github(maladie, plante_detectee)
+    
+    # Extraction automatique des données structurées
+    stade_croissance = extract_growth_stage(classe, confiance)
+    symptomes = extract_symptoms(classe)
+    ravageurs = extract_pests(classe)
+    est_saine = 'healthy' in classe.lower()
 
     return {
         'plante_detectee': plante_detectee,
@@ -150,5 +210,9 @@ def diagnostiquer(image_file, nom_plante=''):
         'confiance': confiance,
         'traitement_suggere': traitement,
         'github': github_info,
-        'est_saine': 'healthy' in classe.lower(),
+        'est_saine': est_saine,
+        # Nouvelles données structurées automatisées
+        'stade_croissance': stade_croissance,
+        'symptomes': symptomes,
+        'ravageur_suspecte': ravageurs,
     }
