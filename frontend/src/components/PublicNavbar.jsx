@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Sun, Moon, LogIn, LayoutDashboard } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import LoginModal from './LoginModal'
 
 const ROLE_ROUTES = {
@@ -15,7 +15,11 @@ export default function PublicNavbar() {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [showLogin, setShowLogin] = useState(false)
-  const [dark, setDark] = useState(() => localStorage.getItem('afroagri_theme') === 'dark')
+  const [dark, setDark] = useState(() => {
+    const saved = localStorage.getItem('afroagri_theme')
+    if (saved) return saved === 'dark'
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+  })
   const [scrolled, setScrolled] = useState(false)
 
   useEffect(() => {
@@ -58,12 +62,12 @@ export default function PublicNavbar() {
           </div>
 
           {/* Nav links */}
-          <a href="#analyse" className="hidden md:block text-sm font-medium text-terra-dark dark:text-terra-light hover:text-terra-forest dark:hover:text-terra-gold transition-colors">
+          <Link to="/analyser" className="hidden md:block text-sm font-medium text-terra-dark dark:text-terra-light hover:text-terra-forest dark:hover:text-terra-gold transition-colors">
             Analyser un terrain
-          </a>
-          <a href="#comment" className="hidden md:block text-sm font-medium text-terra-dark dark:text-terra-light hover:text-terra-forest dark:hover:text-terra-gold transition-colors">
+          </Link>
+          <Link to="/comment" className="hidden md:block text-sm font-medium text-terra-dark dark:text-terra-light hover:text-terra-forest dark:hover:text-terra-gold transition-colors">
             Comment ça marche
-          </a>
+          </Link>
 
           {/* Actions */}
           <button
