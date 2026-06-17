@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 # Chemin de base du projet
@@ -14,6 +15,7 @@ ALLOWED_HOSTS = []
 
 # Applications installées dans le projet
 INSTALLED_APPS = [
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -31,6 +33,7 @@ INSTALLED_APPS = [
 
 # Middlewares exécutés à chaque requête
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -62,15 +65,11 @@ TEMPLATES = [
 # Application WSGI pour le déploiement
 WSGI_APPLICATION = 'afroagri.wsgi.application'
 
-# Configuration de la base de données MySQL
+# Configuration de la base de données locale par défaut
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',  # Moteur MySQL
-        'NAME': 'afroagri',                     # Nom de la base de données
-        'USER': 'root',                          # Utilisateur MySQL
-        'PASSWORD': '',                          # Mot de passe MySQL
-        'HOST': 'localhost',                     # Hôte de la base de données
-        'PORT': '3306',                          # Port MySQL par défaut
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
@@ -96,3 +95,10 @@ USE_TZ = True
 
 # URL pour les fichiers statiques (CSS, JS, images)
 STATIC_URL = 'static/'
+
+CORS_ALLOWED_ORIGINS = [
+    'http://localhost:3000',
+]
+
+MEDIA_URL = '/media/'
+

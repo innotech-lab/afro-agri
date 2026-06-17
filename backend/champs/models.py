@@ -18,4 +18,4 @@ class Champ(models.Model):
 
     class Meta:
         db_table = 'champs'
-        managed = False
+        managed = True

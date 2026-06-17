@@ -20,4 +20,4 @@ class EtudeSol(models.Model):
 
     class Meta:
         db_table = 'etude_sol'
-        managed = False
+        managed = True

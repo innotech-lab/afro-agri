@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'champs',
-                'managed': False,
+                'managed': True,
             },
         ),
     ]

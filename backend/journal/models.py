@@ -20,4 +20,4 @@ class JournalPlante(models.Model):
 
     class Meta:
         db_table = 'journal_plante'
-        managed = False
+        managed = True

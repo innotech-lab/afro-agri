@@ -13,4 +13,4 @@ class Plante(models.Model):
 
     class Meta:
         db_table = 'plantes'
-        managed = False
+        managed = True

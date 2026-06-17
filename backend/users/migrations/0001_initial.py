@@ -8,6 +8,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
+        ('type_user', '0001_initial'),
     ]
 
     operations = [
@@ -17,14 +18,15 @@ class Migration(migrations.Migration):
                 ('id_user', models.AutoField(primary_key=True, serialize=False)),
                 ('nom', models.CharField(blank=True, max_length=50, null=True)),
                 ('prenom', models.CharField(max_length=50)),
+                ('id_type', models.ForeignKey(on_delete=models.CASCADE, to='type_user.TypeUser', db_column='id_type')),
                 ('email', models.CharField(max_length=50, unique=True)),
                 ('password', models.CharField(max_length=200)),
-                ('created_at', models.DateTimeField(auto_now=True)),
-                ('update_at', models.DateTimeField(blank=True, null=True)),
+                ('created_at', models.DateTimeField(auto_now_add=True, db_column='created_at')),
+                ('updated_at', models.DateTimeField(blank=True, null=True, auto_now=True, db_column='update_at')),
             ],
             options={
                 'db_table': 'users',
-                'managed': False,
+                'managed': True,
             },
         ),
     ]

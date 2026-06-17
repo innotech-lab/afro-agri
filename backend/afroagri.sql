@@ -129,7 +129,7 @@ CREATE TABLE `users` (
   `id_type` int(11) NOT NULL,
   `email` varchar(50) NOT NULL,
   `password` varchar(200) NOT NULL,
-  `created_date` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `update_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -137,7 +137,7 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id_user`, `nom`, `prenom`, `id_type`, `email`, `password`, `created_date`, `update_at`) VALUES
+INSERT INTO `users` (`id_user`, `nom`, `prenom`, `id_type`, `email`, `password`, `created_at`, `update_at`) VALUES
 (1, 'admin', 'kithub', 1, 'admin@kit-hub.com', 'password', '2026-06-05 15:05:51', NULL);
 
 --
