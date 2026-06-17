@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AfroAgri — API Tester</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Courier New', monospace; background: #1e1e1e; color: #d4d4d4; height: 100vh; display: flex; flex-direction: column; }
+
+        header {
+            background: #2e7d32;
+            color: white;
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            font-family: Arial, sans-serif;
+        }
+
+        .toolbar {
+            background: #252526;
+            padding: 12px 16px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            border-bottom: 1px solid #3c3c3c;
+            flex-wrap: wrap;
+        }
+
+        select#method {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: none;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            min-width: 90px;
+        }
+
+        .GET    { background: #4caf50; color: white; }
+        .POST   { background: #ff9800; color: white; }
+        .PUT    { background: #2196f3; color: white; }
+        .PATCH  { background: #9c27b0; color: white; }
+        .DELETE { background: #f44336; color: white; }
+
+        #url-input {
+            flex: 1;
+            padding: 8px 14px;
+            border-radius: 6px;
+            border: 1px solid #3c3c3c;
+            background: #3c3c3c;
+            color: #d4d4d4;
+            font-size: 14px;
+            min-width: 200px;
+        }
+
+        #url-input:focus { outline: none; border-color: #2e7d32; }
+
+        .btn-send {
+            padding: 8px 20px;
+            background: #2e7d32;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .btn-send:hover { background: #1b5e20; }
+
+        .main {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* PANNEAU GAUCHE - Requête */
+        .panel-left {
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+            border-right: 2px solid #3c3c3c;
+        }
+
+        /* PANNEAU DROIT - Réponse */
+        .panel-right {
+            width: 50%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-title {
+            background: #252526;
+            padding: 8px 16px;
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #3c3c3c;
+            font-family: Arial, sans-serif;
+        }
+
+        textarea#body-input {
+            flex: 1;
+            background: #1e1e1e;
+            color: #ce9178;
+            border: none;
+            padding: 16px;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            resize: none;
+            line-height: 1.6;
+        }
+
+        textarea#body-input:focus { outline: none; }
+
+        #response-panel {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        /* Coloration JSON */
+        .json-key    { color: #9cdcfe; }
+        .json-string { color: #ce9178; }
+        .json-number { color: #b5cea8; }
+        .json-bool   { color: #569cd6; }
+        .json-null   { color: #569cd6; }
+
+        .status-bar {
+            background: #252526;
+            padding: 6px 16px;
+            font-size: 12px;
+            color: #888;
+            border-top: 1px solid #3c3c3c;
+            display: flex;
+            gap: 16px;
+            font-family: Arial, sans-serif;
+        }
+
+        .status-ok  { color: #4caf50; font-weight: bold; }
+        .status-err { color: #f44336; font-weight: bold; }
+
+        /* Raccourcis */
+        .shortcuts {
+            background: #252526;
+            padding: 8px 16px;
+            border-bottom: 1px solid #3c3c3c;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .shortcut-btn {
+            padding: 4px 10px;
+            border-radius: 4px;
+            border: 1px solid #3c3c3c;
+            background: #3c3c3c;
+            color: #d4d4d4;
+            font-size: 12px;
+            cursor: pointer;
+            font-family: Arial, sans-serif;
+        }
+        .shortcut-btn:hover { background: #4c4c4c; }
+
+        .placeholder-msg {
+            color: #555;
+            text-align: center;
+            margin-top: 60px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<header>🌿 AfroAgri — API Tester (Plantes)</header>
+
+<!-- BARRE URL -->
+<div class="toolbar">
+    <select id="method" class="POST" onchange="changerMethode()">
+        <option value="GET">GET</option>
+        <option value="POST" selected>POST</option>
+        <option value="PUT">PUT</option>
+        <option value="PATCH">PATCH</option>
+        <option value="DELETE">DELETE</option>
+    </select>
+    <input type="text" id="url-input" value="http://127.0.0.1:8000/api/plantes/">
+    <button class="btn-send" onclick="envoyer()">▶ Send</button>
+</div>
+
+<!-- RACCOURCIS -->
+<div class="shortcuts">
+    <span style="color:#888;font-size:12px;font-family:Arial;align-self:center;">Exemples :</span>
+    <button class="shortcut-btn" onclick="chargerExemple('GET_LIST')">GET — Liste</button>
+    <button class="shortcut-btn" onclick="chargerExemple('GET_ONE')">GET — Détail</button>
+    <button class="shortcut-btn" onclick="chargerExemple('POST')">POST — Créer</button>
+    <button class="shortcut-btn" onclick="chargerExemple('PUT')">PUT — Modifier</button>
+    <button class="shortcut-btn" onclick="chargerExemple('PATCH')">PATCH — Partiel</button>
+    <button class="shortcut-btn" onclick="chargerExemple('DELETE')">DELETE — Supprimer</button>
+</div>
+
+<!-- PANNEAUX -->
+<div class="main">
+
+    <!-- GAUCHE : Body de la requête -->
+    <div class="panel-left">
+        <div class="panel-title">📤 Body — JSON Request</div>
+        <textarea id="body-input" spellcheck="false" placeholder="Saisissez votre JSON ici...
+Exemple :
+{
+    &quot;nom_plante&quot;: &quot;Tomate&quot;,
+    &quot;variete&quot;: &quot;Roma&quot;,
+    &quot;date_plantation&quot;: &quot;2024-06-01&quot;,
+    &quot;id_champ&quot;: 1
+}"></textarea>
+    </div>
+
+    <!-- DROITE : Réponse -->
+    <div class="panel-right">
+        <div class="panel-title">📥 Response</div>
+        <div id="response-panel">
+            <div class="placeholder-msg">
+                ▶ Cliquez sur <strong>Send</strong> pour voir la réponse ici.
+            </div>
+        </div>
+        <div class="status-bar">
+            <span id="status-code">—</span>
+            <span id="status-time">—</span>
+            <span id="status-size">—</span>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function changerMethode() {
+        const sel = document.getElementById('method');
+        sel.className = sel.value;
+
+        // Vider le body pour GET et DELETE
+        if (sel.value === 'GET' || sel.value === 'DELETE') {
+            document.getElementById('body-input').value = '';
+        }
+    }
+
+    async function envoyer() {
+        const method  = document.getElementById('method').value;
+        const url     = document.getElementById('url-input').value.trim();
+        const bodyTxt = document.getElementById('body-input').value.trim();
+        const panel   = document.getElementById('response-panel');
+
+        if (!url) { alert('Entrez une URL.'); return; }
+
+        panel.innerHTML = '<div class="placeholder-msg">⏳ Envoi en cours...</div>';
+        document.getElementById('status-code').textContent = '...';
+
+        const options = { method, headers: {} };
+
+        if (bodyTxt && method !== 'GET' && method !== 'DELETE') {
+            try {
+                JSON.parse(bodyTxt); // valider JSON
+                options.headers['Content-Type'] = 'application/json';
+                options.body = bodyTxt;
+            } catch (e) {
+                panel.innerHTML = '<div style="color:#f44336;padding:16px;">❌ JSON invalide : ' + e.message + '</div>';
+                return;
+            }
+        }
+
+        const debut = Date.now();
+
+        try {
+            const resp = await fetch(url, options);
+            const duree = Date.now() - debut;
+            const texte = await resp.text();
+
+            // Status
+            const codeEl = document.getElementById('status-code');
+            codeEl.textContent = `Status: ${resp.status} ${resp.statusText}`;
+            codeEl.className = resp.ok ? 'status-ok' : 'status-err';
+            document.getElementById('status-time').textContent = `${duree} ms`;
+            document.getElementById('status-size').textContent = `${texte.length} octets`;
+
+            // Afficher JSON coloré
+            try {
+                const json = JSON.parse(texte);
+                panel.innerHTML = coloriserJSON(JSON.stringify(json, null, 4));
+            } catch {
+                panel.textContent = texte;
+            }
+
+        } catch (e) {
+            panel.innerHTML = `<div style="color:#f44336;padding:16px;">❌ Erreur : ${e.message}</div>`;
+            document.getElementById('status-code').textContent = 'Erreur réseau';
+            document.getElementById('status-code').className = 'status-err';
+        }
+    }
+
+    function coloriserJSON(json) {
+        return json
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, match => {
+                if (/^"/.test(match)) {
+                    return /:$/.test(match)
+                        ? `<span class="json-key">${match}</span>`
+                        : `<span class="json-string">${match}</span>`;
+                }
+                if (/true|false/.test(match)) return `<span class="json-bool">${match}</span>`;
+                if (/null/.test(match))       return `<span class="json-null">${match}</span>`;
+                return `<span class="json-number">${match}</span>`;
+            });
+    }
+
+    function chargerExemple(type) {
+        const methodEl = document.getElementById('method');
+        const urlEl    = document.getElementById('url-input');
+        const bodyEl   = document.getElementById('body-input');
+
+        const exemples = {
+            GET_LIST: {
+                method: 'GET', url: 'http://127.0.0.1:8000/api/plantes/', body: ''
+            },
+            GET_ONE: {
+                method: 'GET', url: 'http://127.0.0.1:8000/api/plantes/1/', body: ''
+            },
+            POST: {
+                method: 'POST', url: 'http://127.0.0.1:8000/api/plantes/',
+                body: JSON.stringify({ nom_plante: "Tomate", variete: "Roma", date_plantation: "2024-06-01", id_champ: 1 }, null, 4)
+            },
+            PUT: {
+                method: 'PUT', url: 'http://127.0.0.1:8000/api/plantes/1/',
+                body: JSON.stringify({ nom_plante: "Tomate Cherry", variete: "Cherry", date_plantation: "2024-06-10", id_champ: 1 }, null, 4)
+            },
+            PATCH: {
+                method: 'PATCH', url: 'http://127.0.0.1:8000/api/plantes/1/',
+                body: JSON.stringify({ variete: "Cerise" }, null, 4)
+            },
+            DELETE: {
+                method: 'DELETE', url: 'http://127.0.0.1:8000/api/plantes/1/', body: ''
+            },
+        };
+
+        const ex = exemples[type];
+        methodEl.value = ex.method;
+        methodEl.className = ex.method;
+        urlEl.value  = ex.url;
+        bodyEl.value = ex.body;
+    }
+
+    // Envoyer avec Ctrl+Enter
+    document.addEventListener('keydown', e => {
+        if (e.ctrlKey && e.key === 'Enter') envoyer();
+    });
+</script>
+
+</body>
+</html>

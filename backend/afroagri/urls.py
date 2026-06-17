@@ -1,11 +1,13 @@
 from django.contrib import admin
 from django.urls import path, include
-from django.views.generic import RedirectView
+from django.conf import settings
+from django.conf.urls.static import static
+from django.views.generic import TemplateView
 from users.views import DashboardMinisterView, DashboardAdminView
 
 urlpatterns = [
-    path('', RedirectView.as_view(url='/api/users/users/', permanent=False)),
     path('admin/', admin.site.urls),
+    path('api-tester/', TemplateView.as_view(template_name='api_tester.html')),
     path('api/type-users/', include('type_user.urls')),
     path('api/users/', include('users.urls')),
     path('api/DashboardMinister', DashboardMinisterView.as_view()),
@@ -16,4 +18,7 @@ urlpatterns = [
     path('api/plantes/', include('plantes.urls')),
     path('api/journal/', include('journal.urls')),
     path('api/etude-sol/', include('etude_sol.urls')),
-]
+    path('api/diagnostic/', include('diagnostic.urls')),
+    path('diagnostic/', TemplateView.as_view(template_name='diagnostic.html')),
+    path('etude-sol/', TemplateView.as_view(template_name='etude_sol.html')),
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

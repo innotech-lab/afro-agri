@@ -1,17 +1,23 @@
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
+from django.utils import timezone
+from rest_framework import viewsets
 from .models import Plante
 from .serializers import PlanteSerializer
 
-class PlanteView(APIView):
-    def get(self, request):
-        plantes = Plante.objects.all()
-        return Response(PlanteSerializer(plantes, many=True).data)
 
-    def post(self, request):
-        serializer = PlanteSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class PlanteViewSet(viewsets.ModelViewSet):
+    queryset = Plante.objects.all()
+    serializer_class = PlanteSerializer
+    lookup_field = 'id_plante'
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        id_champ = self.request.query_params.get('id_champ')
+        if id_champ:
+            qs = qs.filter(id_champ=id_champ)
+        return qs
+
+    def perform_create(self, serializer):
+        serializer.save(updated_at=timezone.now())
+
+    def perform_update(self, serializer):
+        serializer.save(updated_at=timezone.now())

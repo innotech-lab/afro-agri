@@ -1,70 +1,61 @@
-# Getting Started with Create React App
+# 🌿 AfroAgri - Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Bienvenue dans la partie Frontend de la plateforme **AfroAgri**, une application moderne dédiée à la digitalisation de l'agriculture africaine.
 
-## Available Scripts
+## 🚀 Stack Technique
 
-In the project directory, you can run:
+L'interface est bâtie avec des technologies de pointe pour garantir performance, réactivité et maintenabilité :
 
-### `npm start`
+- **React 19** : Bibliothèque principale pour une UI dynamique et performante.
+- **Vite** : Outil de build ultra-rapide pour un développement fluide.
+- **Tailwind CSS** : Framework utilitaire pour un design personnalisé (Thème "Terra").
+- **React Router 7** : Gestion avancée de la navigation et des routes protégées.
+- **Lucide React** : Bibliothèque d'icônes épurées et modernes.
+- **Recharts** : Visualisation de données pour les tableaux de bord.
+- **Axios** : Client HTTP pour la communication avec l'API Django.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## ✨ Fonctionnalités (Features)
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+L'application propose une expérience utilisateur segmentée par rôles :
 
-### `npm test`
+### 🌍 Portail Public
+- **Landing Page** : Présentation des services et de la mission d'AfroAgri.
+- **Authentification** : Système de login sécurisé avec gestion de session via contextes React.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### 🚜 Espace Agriculteur
+- **Dashboard Agriculteur** : Suivi des cultures et des activités.
+- **Analyseur de Terrain** : Outil intelligent pour évaluer la santé des sols et des plantes.
+- **Journal de Bord** : Historique des interventions sur les parcelles.
 
-### `npm run build`
+### 🏛️ Espace Ministère & Admin
+- **Dashboard Ministériel** : Vue d'ensemble statistique sur la production nationale.
+- **Administration Système** : Gestion des utilisateurs et des référentiels (plantes, types d'usagers).
+- **KPI Cards & Graphiques** : Visualisation en temps réel des indicateurs clés via des diagrammes circulaires et à barres.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 🌓 Design & UX
+- **Thème "Terra"** : Identité visuelle forte basée sur des tons organiques (Vert forêt, Or, Terre).
+- **Mode Sombre/Clair** : Support natif du mode sombre pour un confort visuel optimal.
+- **Responsive Design** : Interface totalement adaptée aux mobiles et tablettes.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 🛠️ Installation et Lancement
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+1. Entrez dans le dossier :
+   ```bash
+   cd frontend
+   ```
+2. Installez les dépendances :
+   ```bash
+   npm install
+   ```
+3. Lancez le serveur de développement :
+   ```bash
+   npm run dev
+   ```
 
-### `npm run eject`
+## 📁 Structure du Projet
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- `/src/components` : Composants réutilisables (KpiCards, Charts, AppShell).
+- `/src/pages` : Pages principales organisées par modules (Admin, Agriculteur, Ministère).
+- `/src/context` : Gestion de l'état global (Authentification).
+- `/src/router` : Configuration des routes et des accès sécurisés.
+- `/src/assets` : Ressources statiques (images, logo).

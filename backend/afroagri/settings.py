@@ -1,19 +1,14 @@
 import os
 from pathlib import Path
 
-# Chemin de base du projet
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Clé secrète utilisée pour la sécurité - ne jamais exposer en production
 SECRET_KEY = 'django-insecure-!)phz(w%u=#q@$ck!2szakryyr!3jx7d5#x!ddqu_v98$9)^=%'
 
-# Mode débogage - désactiver en production
 DEBUG = True
 
-# Hôtes autorisés à accéder au serveur
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '*']
 
-# Applications installées dans le projet
 INSTALLED_APPS = [
     'corsheaders',
     'django.contrib.admin',
@@ -29,9 +24,9 @@ INSTALLED_APPS = [
     'journal',
     'etude_sol',
     'type_user',
+    'diagnostic',
 ]
 
-# Middlewares exécutés à chaque requête
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
@@ -43,14 +38,15 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# Fichier principal des URLs du projet
 ROOT_URLCONF = 'afroagri.urls'
 
-# Configuration des templates HTML
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [r'C:\Python\Lib\site-packages\rest_framework\templates'],
+        'DIRS': [
+            r'C:\Python\Lib\site-packages\rest_framework\templates',
+            BASE_DIR / 'templates',
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -62,10 +58,8 @@ TEMPLATES = [
     },
 ]
 
-# Application WSGI pour le déploiement
 WSGI_APPLICATION = 'afroagri.wsgi.application'
 
-# Configuration de la base de données locale par défaut
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -73,7 +67,6 @@ DATABASES = {
     }
 }
 
-# Validateurs de mot de passe pour la sécurité des comptes
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -81,24 +74,24 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# Langue par défaut de l'application
 LANGUAGE_CODE = 'en-us'
 
-# Fuseau horaire du serveur
 TIME_ZONE = 'UTC'
 
-# Activation de l'internationalisation
 USE_I18N = True
 
-# Activation des fuseaux horaires
 USE_TZ = True
 
-# URL pour les fichiers statiques (CSS, JS, images)
 STATIC_URL = 'static/'
 
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',
-]
-
 MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
+CORS_ALLOW_ALL_ORIGINS = True
+
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ]
+}
