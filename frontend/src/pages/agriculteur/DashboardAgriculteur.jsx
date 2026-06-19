@@ -1,7 +1,7 @@
 // frontend/src/pages/agriculteur/DashboardAgriculteur.jsx
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { LayoutDashboard, MapPin, Flower2, BookOpen, Microscope, Map, UserRound } from 'lucide-react'
+import { LayoutDashboard, MapPin, Flower2, BookOpen, Microscope, Map, UserRound, AlertTriangle, TrendingUp, GraduationCap, Trophy } from 'lucide-react'
 import axios from 'axios'
 import AppShell from '../../components/AppShell'
 import KpiCard from '../../components/KpiCard'
@@ -16,6 +16,10 @@ const NAV_ITEMS = [
   { icon: BookOpen,        label: 'Journal',          to: '/dashboard/agriculteur/journal' },
   { icon: Microscope,      label: 'Diagnostic IA',   to: '/dashboard/agriculteur/diagnostic' },
   { icon: Map,             label: 'Cartographie',    to: '/dashboard/agriculteur/carte' },
+  { icon: AlertTriangle,   label: 'Alertes Maladies',to: '/dashboard/agriculteur/outbreaks' },
+  { icon: TrendingUp,      label: 'Rendement',       to: '/dashboard/agriculteur/rendement' },
+  { icon: GraduationCap,   label: 'Apprendre',       to: '/dashboard/agriculteur/apprendre' },
+  { icon: Trophy,          label: 'Mon Score',       to: '/dashboard/agriculteur/scout' },
   { icon: UserRound,       label: 'Mon profil',      to: '/dashboard/agriculteur/profil' },
 ]
 

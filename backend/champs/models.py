@@ -14,7 +14,7 @@ class Champ(models.Model):
     longitude = models.FloatField()
     latitude = models.FloatField()
     created_at = models.DateTimeField(db_column='created_at', auto_now=True)
-    updated_at = models.DateTimeField(db_column='update_at', null=True, blank=True)
+    updated_at = models.DateTimeField(db_column='updated_at', null=True, blank=True)
 
     class Meta:
         db_table = 'champs'

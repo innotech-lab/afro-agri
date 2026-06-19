@@ -1,7 +1,7 @@
 // frontend/src/pages/admin/DashboardAdmin.jsx
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { LayoutDashboard, Users, MapPin, Flower2, Microscope, Settings, FlaskConical, FileBarChart, Map } from 'lucide-react'
+import { LayoutDashboard, Users, MapPin, Flower2, Microscope, Settings, FlaskConical, FileBarChart, Map, AlertTriangle, TrendingUp } from 'lucide-react'
 import axios from 'axios'
 import AppShell from '../../components/AppShell'
 import KpiCard from '../../components/KpiCard'
@@ -17,6 +17,8 @@ const NAV_ITEMS = [
   { icon: Microscope,      label: 'Diagnostics',   to: '/dashboard/admin/diagnostics' },
   { icon: FlaskConical,    label: 'Études de sol', to: '/dashboard/admin/etudes' },
   { icon: Map,             label: 'Cartographie',  to: '/dashboard/admin/carte' },
+  { icon: AlertTriangle,   label: 'Alertes Épidémies', to: '/dashboard/admin/outbreaks' },
+  { icon: TrendingUp,      label: 'Rendements',    to: '/dashboard/admin/rendement' },
   { icon: FileBarChart,    label: 'Rapports',      to: '/dashboard/admin/rapports' },
   { icon: Settings,        label: 'Paramètres',    to: '/dashboard/admin/settings' },
 ]

@@ -1,5 +1,12 @@
 import { useState } from 'react'
-import { Eye, EyeOff, Loader2, X, UserPlus, LogIn } from 'lucide-react'
+import { Eye, EyeOff, Loader2, X, UserPlus, LogIn, FlaskConical } from 'lucide-react'
+
+const TEST_ACCOUNTS = [
+  { role: 'Admin',        email: 'admin@kit-hub.com',      password: 'password',  color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' },
+  { role: 'Agriculteur',  email: 'agri@afroagri.com',      password: 'password',  color: 'bg-terra-forest/10 text-terra-forest dark:bg-terra-forest/20 dark:text-terra-light' },
+  { role: 'Ministère',    email: 'minister@afroagri.com',  password: 'minister',  color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' },
+  { role: 'Particulier',  email: 'maverick@local.com',     password: 'password',  color: 'bg-terra-gold/10 text-terra-dark dark:bg-terra-gold/20 dark:text-terra-gold' },
+]
 import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import axios from 'axios'
@@ -168,6 +175,30 @@ export default function LoginModal({ onClose, defaultTab = 'login' }) {
                 Créer un compte
               </button>
             </p>
+
+            {/* Test accounts */}
+            <div className="mt-5 border-t border-terra-border dark:border-terra-forest pt-4">
+              <div className="flex items-center gap-1.5 mb-3">
+                <FlaskConical size={12} className="text-gray-400" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Comptes de test</span>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                {TEST_ACCOUNTS.map(acc => (
+                  <button
+                    key={acc.email}
+                    type="button"
+                    onClick={() => { setLoginEmail(acc.email); setLoginPassword(acc.password) }}
+                    className="flex items-center justify-between gap-2 w-full rounded-lg px-3 py-2 hover:opacity-80 transition-opacity text-left"
+                    style={{ background: 'transparent' }}
+                  >
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${acc.color}`}>{acc.role}</span>
+                    <span className="text-[10px] text-gray-500 dark:text-gray-400 font-mono truncate">{acc.email}</span>
+                    <span className="text-[10px] text-gray-400 font-mono flex-shrink-0">···{acc.password.slice(-3)}</span>
+                  </button>
+                ))}
+              </div>
+              <p className="text-[9px] text-gray-300 dark:text-gray-600 mt-2 text-center">Cliquez pour remplir · Développement uniquement</p>
+            </div>
           </div>
         )}
 

@@ -10,7 +10,7 @@ class User(models.Model):
     email = models.CharField(max_length=50, unique=True)
     password = models.CharField(max_length=200)
     created_at = models.DateTimeField(auto_now_add=True, db_column='created_at')
-    updated_at = models.DateTimeField(db_column='updated_at', auto_now=True, null=True, blank=True)
+    updated_at = models.DateTimeField(db_column='update_at', auto_now=True, null=True, blank=True)
 
     class Meta:
         db_table = 'users'

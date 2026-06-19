@@ -1,7 +1,7 @@
 // frontend/src/pages/ministere/DashboardMinistere.jsx
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import { LayoutDashboard, MapPin, Flower2, FlaskConical, FileBarChart, Microscope, Map } from 'lucide-react'
+import { LayoutDashboard, MapPin, Flower2, FlaskConical, FileBarChart, Microscope, Map, AlertTriangle, TrendingUp } from 'lucide-react'
 import axios from 'axios'
 import AppShell from '../../components/AppShell'
 import KpiCard from '../../components/KpiCard'
@@ -16,6 +16,8 @@ const NAV_ITEMS = [
   { icon: Microscope,      label: 'Diagnostics',     to: '/dashboard/ministere/diagnostics' },
   { icon: FlaskConical,    label: 'Études de sol',   to: '/dashboard/ministere/etudes' },
   { icon: Map,             label: 'Cartographie',    to: '/dashboard/ministere/carte' },
+  { icon: AlertTriangle,   label: 'Alertes Épidémies', to: '/dashboard/ministere/outbreaks' },
+  { icon: TrendingUp,      label: 'Rendements',      to: '/dashboard/ministere/rendement' },
   { icon: FileBarChart,    label: 'Rapports',        to: '/dashboard/ministere/rapports' },
 ]
 

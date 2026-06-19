@@ -10,7 +10,7 @@ class JournalPlante(models.Model):
     stade_croissance = models.CharField(max_length=100)
     symptomes = models.CharField(max_length=150)
     ravageur_suspecte = models.CharField(max_length=150)
-    maladie_suspecte = models.CharField(max_length=150, db_column='maladie_suspectee')
+    maladie_suspecte = models.CharField(max_length=150)
     id_user = models.ForeignKey(User, db_column='id_user', on_delete=models.CASCADE)
     session_uuid = models.CharField(max_length=150)
     longitude = models.FloatField()
