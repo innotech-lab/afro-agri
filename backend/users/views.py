@@ -97,9 +97,12 @@ class DashboardParticulierView(APIView):
             cur.execute(
                 '''SELECT dr.id_diagnostic, dr.image, dr.maladie_detectee, dr.confiance,
                           dr.traitement_suggere, dr.source_github, dr.created_at,
-                          jp.stade_croissance, jp.date_observation
+                          jp.stade_croissance, jp.date_observation,
+                          jp.longitude, jp.latitude,
+                          p.nom_plante, p.id_champ
                    FROM diagnostic_result dr
                    JOIN journal_plante jp ON jp.id_journal = dr.id_journal
+                   JOIN plantes p ON p.id_plante = jp.id_plante
                    WHERE jp.id_user = %s
                    ORDER BY dr.created_at DESC
                    LIMIT 50''',
@@ -140,6 +143,7 @@ class DashboardMinisterView(APIView):
         from plantes.models import Plante
         from journal.models import JournalPlante
         from etude_sol.models import EtudeSol
+        from diagnostic.models import DiagnosticResult
         from users.models import User
 
         # Basic counts
@@ -148,6 +152,7 @@ class DashboardMinisterView(APIView):
         journal_qs = JournalPlante.objects.all()
         etude_qs = EtudeSol.objects.all()
         users_qs = User.objects.all()
+        diagnostics_qs = DiagnosticResult.objects.all()
 
         # Aggregated stats
         champs_by_source = list(champs_qs.values('source_eau').annotate(count=Count('id_champ')))
@@ -172,6 +177,9 @@ class DashboardMinisterView(APIView):
                 'journal': journal_qs.count(),
                 'etude_sol': etude_qs.count(),
                 'users': users_qs.count(),
+                'diagnostics': diagnostics_qs.count(),
+                'maladies': diagnostics_qs.exclude(maladie_detectee='').values('maladie_detectee').distinct().count(),
+                'clients': users_qs.filter(id_type__type__in=['particulier', 'agriculteur']).count(),
             },
             'champs': {
                 'by_source_eau': champs_by_source,
@@ -209,6 +217,7 @@ class DashboardAdminView(APIView):
         from plantes.models import Plante
         from journal.models import JournalPlante
         from etude_sol.models import EtudeSol
+        from diagnostic.models import DiagnosticResult
         from users.models import User
 
         champs_qs = Champ.objects.all()
@@ -216,6 +225,7 @@ class DashboardAdminView(APIView):
         journal_qs = JournalPlante.objects.all()
         etude_qs = EtudeSol.objects.all()
         users_qs = User.objects.all()
+        diagnostics_qs = DiagnosticResult.objects.all()
 
         champs_by_source = list(champs_qs.values('source_eau').annotate(count=Count('id_champ')))
         avg_superficie = champs_qs.aggregate(avg_superficie=Avg('superficie'))['avg_superficie']
@@ -239,6 +249,9 @@ class DashboardAdminView(APIView):
                 'journal': journal_qs.count(),
                 'etude_sol': etude_qs.count(),
                 'users': users_qs.count(),
+                'diagnostics': diagnostics_qs.count(),
+                'maladies': diagnostics_qs.exclude(maladie_detectee='').values('maladie_detectee').distinct().count(),
+                'clients': users_qs.filter(id_type__type__in=['particulier', 'agriculteur']).count(),
             },
             'champs': {
                 'by_source_eau': champs_by_source,

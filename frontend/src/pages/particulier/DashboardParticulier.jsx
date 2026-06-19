@@ -1,11 +1,16 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import axios from 'axios'
 import { useAuth } from '../../context/AuthContext'
 import {
   LogOut, Home, History, CheckCircle, XCircle, AlertTriangle,
   ImagePlus, Loader2, ChevronRight, Calendar, Leaf
 } from 'lucide-react'
+import { BarChart3, Camera, MapPinned, Sprout, UserRound } from 'lucide-react'
+import ResourceManager from '../../components/ResourceManager'
+import { ProfileView } from '../../components/DashboardExtras'
+import MapWidget from '../../components/MapWidget'
+import { champConfig, plantConfig } from '../../components/DashboardSections'
 
 function ThemeToggle() {
   const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'))
@@ -68,6 +73,12 @@ function HistoryCard({ entry }) {
             {entry.stade_croissance && (
               <span className="flex items-center gap-1"><Leaf size={11} />{entry.stade_croissance}</span>
             )}
+            {entry.nom_plante && (
+              <span className="flex items-center gap-1"><Sprout size={11} />{entry.nom_plante}</span>
+            )}
+            {entry.id_champ && (
+              <span className="flex items-center gap-1"><MapPinned size={11} />Champ #{entry.id_champ}</span>
+            )}
             {entry.confiance !== null && entry.confiance !== undefined && (
               <span className="font-medium text-terra-medium">{entry.confiance}% confiance</span>
             )}
@@ -106,9 +117,12 @@ function HistoryCard({ entry }) {
 export default function DashboardParticulier() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [historyQuery, setHistoryQuery] = useState('')
+  const [historyDate, setHistoryDate] = useState('')
 
   useEffect(() => {
     axios.get('/api/users/dashboard/particulier/')
@@ -122,8 +136,67 @@ export default function DashboardParticulier() {
     navigate('/')
   }
 
+  const section = location.pathname.split('/').filter(Boolean).at(-1)
+  const isOverview = section === 'particulier'
+  const sectionContent = section === 'profil'
+    ? <ProfileView />
+    : section === 'plantes'
+      ? <ResourceManager {...plantConfig} readOnly />
+      : section === 'champs'
+        ? <ResourceManager {...champConfig} canDelete={false} />
+      : null
+
+  const filteredHistory = (data?.history ?? []).filter(entry => {
+    const matchesQuery = !historyQuery || [
+      entry.maladie_detectee,
+      entry.nom_plante,
+      entry.stade_croissance,
+      entry.traitement_suggere,
+    ].some(value => String(value ?? '').toLowerCase().includes(historyQuery.toLowerCase()))
+    const rawDate = entry.date_observation || entry.created_at || ''
+    return matchesQuery && (!historyDate || String(rawDate).startsWith(historyDate))
+  })
+
+  const bottomNavigation = (
+    <nav className="fixed bottom-0 inset-x-0 z-40 bg-white dark:bg-terra-dark border-t border-terra-border dark:border-terra-forest px-3 py-2">
+      <div className="max-w-lg mx-auto grid grid-cols-4 gap-1">
+        {[
+          { label: 'Statistiques', icon: BarChart3, to: '/dashboard/particulier' },
+          { label: 'Profil', icon: UserRound, to: '/dashboard/particulier/profil' },
+          { label: 'Plantes', icon: Sprout, to: '/dashboard/particulier/plantes' },
+          { label: 'Scan', icon: Camera, to: '/analyser' },
+        ].map(item => {
+          const Icon = item.icon
+          const active = location.pathname === item.to
+          return (
+            <button key={item.to} onClick={() => navigate(item.to)} className={`flex flex-col items-center gap-1 rounded-xl py-1.5 text-[11px] font-semibold ${active ? 'text-terra-dark dark:text-terra-light bg-terra-bg dark:bg-terra-forest' : 'text-gray-400'}`}>
+              <Icon size={18} />{item.label}
+            </button>
+          )
+        })}
+      </div>
+    </nav>
+  )
+
+  if (!isOverview && sectionContent) {
+    return (
+      <div className="min-h-screen bg-terra-bg dark:bg-[#0f1f0f] font-sans pb-24">
+        <header className="sticky top-0 z-30 flex items-center justify-between gap-3 px-5 py-3.5 bg-white dark:bg-terra-dark border-b border-terra-border dark:border-terra-forest shadow-sm">
+          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => navigate('/dashboard/particulier')}>
+            <div className="w-8 h-8 bg-terra-dark rounded-xl flex items-center justify-center text-terra-gold font-extrabold">A</div>
+            <span className="font-extrabold text-terra-dark dark:text-[#e8f5e4]">AfroAgri</span>
+            <span className="hidden sm:inline text-xs font-medium text-gray-400 bg-terra-bg dark:bg-terra-forest px-2 py-0.5 rounded-full">Mon espace</span>
+          </div>
+          <div className="flex items-center gap-2"><ThemeToggle /><button onClick={handleLogout} className="p-2 text-red-500"><LogOut size={16} /></button></div>
+        </header>
+        <main className="px-5 py-8">{sectionContent}</main>
+        {bottomNavigation}
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen bg-terra-bg dark:bg-[#0f1f0f] font-sans">
+    <div className="min-h-screen bg-terra-bg dark:bg-[#0f1f0f] font-sans pb-24">
 
       {/* Topbar */}
       <header className="sticky top-0 z-30 flex items-center justify-between gap-3 px-5 py-3.5 bg-white dark:bg-terra-dark border-b border-terra-border dark:border-terra-forest shadow-sm">
@@ -199,9 +272,19 @@ export default function DashboardParticulier() {
         )}
 
         {/* History section */}
-        <div className="flex items-center gap-2 mb-4">
-          <History size={17} className="text-terra-medium" />
-          <h2 className="font-bold text-terra-dark dark:text-[#e8f5e4] text-base">Historique des analyses</h2>
+        <div className="flex items-center justify-between gap-2 mb-4">
+          <div className="flex items-center gap-2">
+            <History size={17} className="text-terra-medium" />
+            <h2 className="font-bold text-terra-dark dark:text-[#e8f5e4] text-base">Historique des analyses</h2>
+          </div>
+          <button onClick={() => navigate('/dashboard/particulier/champs')} className="flex items-center gap-1.5 text-xs font-semibold text-terra-medium hover:text-terra-dark">
+            <MapPinned size={14} /> Mes champs
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+          <input value={historyQuery} onChange={event => setHistoryQuery(event.target.value)} placeholder="Rechercher par culture ou maladie..." className="w-full rounded-xl border border-terra-border dark:border-terra-forest bg-white dark:bg-terra-dark px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-terra-light" />
+          <input type="date" value={historyDate} onChange={event => setHistoryDate(event.target.value)} className="w-full rounded-xl border border-terra-border dark:border-terra-forest bg-white dark:bg-terra-dark px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-terra-light" />
         </div>
 
         {loading && (
@@ -218,9 +301,9 @@ export default function DashboardParticulier() {
         )}
 
         {!loading && !error && data && (
-          data.history?.length > 0 ? (
+          filteredHistory.length > 0 ? (
             <div className="flex flex-col gap-3">
-              {data.history.map((entry, i) => (
+              {filteredHistory.map((entry, i) => (
                 <HistoryCard key={entry.id_diagnostic ?? i} entry={entry} />
               ))}
             </div>
@@ -246,7 +329,30 @@ export default function DashboardParticulier() {
             </div>
           )
         )}
+
+        {!loading && !error && data?.history?.length > 0 && (
+          <div className="mt-7">
+            <div className="flex items-center gap-2 mb-4">
+              <MapPinned size={17} className="text-terra-medium" />
+              <h2 className="font-bold text-terra-dark dark:text-[#e8f5e4] text-base">Cartographie de mes diagnostics</h2>
+            </div>
+            <MapWidget
+              height={280}
+              points={data.history
+                .filter(e => Number(e.latitude) && Number(e.longitude))
+                .map(e => ({
+                  id: e.id_diagnostic,
+                  lat: Number(e.latitude),
+                  lng: Number(e.longitude),
+                  label: e.maladie_detectee || 'Diagnostic',
+                  detail: e.traitement_suggere || '',
+                }))
+              }
+            />
+          </div>
+        )}
       </main>
+      {bottomNavigation}
     </div>
   )
 }

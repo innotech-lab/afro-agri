@@ -1,11 +1,13 @@
 // frontend/src/pages/admin/DashboardAdmin.jsx
 import { useEffect, useState } from 'react'
-import { LayoutDashboard, Users, MapPin, Flower2, Microscope, Settings } from 'lucide-react'
+import { useLocation } from 'react-router-dom'
+import { LayoutDashboard, Users, MapPin, Flower2, Microscope, Settings, FlaskConical, FileBarChart, Map } from 'lucide-react'
 import axios from 'axios'
 import AppShell from '../../components/AppShell'
 import KpiCard from '../../components/KpiCard'
 import BarChartWidget from '../../components/BarChartWidget'
 import DonutChartWidget from '../../components/DonutChartWidget'
+import { AdminSection } from '../../components/DashboardSections'
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: 'Vue globale',    to: '/dashboard/admin' },
@@ -13,6 +15,9 @@ const NAV_ITEMS = [
   { icon: MapPin,          label: 'Champs',        to: '/dashboard/admin/champs' },
   { icon: Flower2,         label: 'Plantes',       to: '/dashboard/admin/plantes' },
   { icon: Microscope,      label: 'Diagnostics',   to: '/dashboard/admin/diagnostics' },
+  { icon: FlaskConical,    label: 'Études de sol', to: '/dashboard/admin/etudes' },
+  { icon: Map,             label: 'Cartographie',  to: '/dashboard/admin/carte' },
+  { icon: FileBarChart,    label: 'Rapports',      to: '/dashboard/admin/rapports' },
   { icon: Settings,        label: 'Paramètres',    to: '/dashboard/admin/settings' },
 ]
 
@@ -23,9 +28,11 @@ const TYPE_COLORS = {
 }
 
 export default function DashboardAdmin() {
+  const location = useLocation()
   const [data, setData] = useState(null)
   const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
+  const isOverview = location.pathname.replace(/\/+$/, '') === '/dashboard/admin'
 
   useEffect(() => {
     Promise.all([
@@ -38,6 +45,10 @@ export default function DashboardAdmin() {
     }).catch(console.error)
     .finally(() => setLoading(false))
   }, [])
+
+  if (!isOverview) {
+    return <AppShell sidebarItems={NAV_ITEMS}><AdminSection /></AppShell>
+  }
 
   if (loading) {
     return (
@@ -63,11 +74,13 @@ export default function DashboardAdmin() {
           <p className="text-sm text-gray-500 mt-0.5">Administration système — accès complet</p>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
           <KpiCard value={counts.users} label="Utilisateurs" trendDirection="up" trend="ce mois" />
+          <KpiCard value={counts.clients} label="Clients" />
           <KpiCard value={counts.champs?.toLocaleString()} label="Champs" />
-          <KpiCard value={counts.journal} label="Entrées journal" />
-          <KpiCard value={counts.etude_sol} label="Études de sol" />
+          <KpiCard value={counts.plantes} label="Plantes" />
+          <KpiCard value={counts.diagnostics} label="Diagnostics" />
+          <KpiCard value={counts.maladies} label="Maladies détectées" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">

@@ -1,11 +1,13 @@
 // frontend/src/pages/agriculteur/DashboardAgriculteur.jsx
 import { useEffect, useState } from 'react'
-import { LayoutDashboard, MapPin, Flower2, BookOpen, Microscope } from 'lucide-react'
+import { useLocation } from 'react-router-dom'
+import { LayoutDashboard, MapPin, Flower2, BookOpen, Microscope, Map, UserRound } from 'lucide-react'
 import axios from 'axios'
 import AppShell from '../../components/AppShell'
 import KpiCard from '../../components/KpiCard'
 import BarChartWidget from '../../components/BarChartWidget'
 import DonutChartWidget from '../../components/DonutChartWidget'
+import { FarmerSection } from '../../components/DashboardSections'
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: 'Tableau de bord', to: '/dashboard/agriculteur' },
@@ -13,6 +15,8 @@ const NAV_ITEMS = [
   { icon: Flower2,         label: 'Mes Plantes',     to: '/dashboard/agriculteur/plantes' },
   { icon: BookOpen,        label: 'Journal',          to: '/dashboard/agriculteur/journal' },
   { icon: Microscope,      label: 'Diagnostic IA',   to: '/dashboard/agriculteur/diagnostic' },
+  { icon: Map,             label: 'Cartographie',    to: '/dashboard/agriculteur/carte' },
+  { icon: UserRound,       label: 'Mon profil',      to: '/dashboard/agriculteur/profil' },
 ]
 
 const STATUS_STYLES = {
@@ -30,10 +34,12 @@ function getStatus(symptomes) {
 }
 
 export default function DashboardAgriculteur() {
+  const location = useLocation()
   const [champs, setChamps] = useState([])
   const [plantes, setPlantes] = useState([])
   const [journal, setJournal] = useState([])
   const [loading, setLoading] = useState(true)
+  const isOverview = location.pathname.replace(/\/+$/, '') === '/dashboard/agriculteur'
 
   useEffect(() => {
     Promise.all([
@@ -71,6 +77,10 @@ export default function DashboardAgriculteur() {
   const healthPct = journal.length
     ? Math.round((journal.filter(j => getStatus(j.symptomes) === 'sain').length / journal.length) * 100)
     : 0
+
+  if (!isOverview) {
+    return <AppShell sidebarItems={NAV_ITEMS}><FarmerSection /></AppShell>
+  }
 
   if (loading) {
     return (

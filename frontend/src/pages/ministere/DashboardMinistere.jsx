@@ -1,23 +1,29 @@
 // frontend/src/pages/ministere/DashboardMinistere.jsx
 import { useEffect, useState } from 'react'
-import { LayoutDashboard, MapPin, Flower2, FlaskConical, FileBarChart } from 'lucide-react'
+import { useLocation } from 'react-router-dom'
+import { LayoutDashboard, MapPin, Flower2, FlaskConical, FileBarChart, Microscope, Map } from 'lucide-react'
 import axios from 'axios'
 import AppShell from '../../components/AppShell'
 import KpiCard from '../../components/KpiCard'
 import BarChartWidget from '../../components/BarChartWidget'
 import DonutChartWidget from '../../components/DonutChartWidget'
+import { MinisterSection } from '../../components/DashboardSections'
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: 'Vue nationale',   to: '/dashboard/ministere' },
   { icon: MapPin,          label: 'Champs',          to: '/dashboard/ministere/champs' },
   { icon: Flower2,         label: 'Plantes',         to: '/dashboard/ministere/plantes' },
+  { icon: Microscope,      label: 'Diagnostics',     to: '/dashboard/ministere/diagnostics' },
   { icon: FlaskConical,    label: 'Études de sol',   to: '/dashboard/ministere/etudes' },
+  { icon: Map,             label: 'Cartographie',    to: '/dashboard/ministere/carte' },
   { icon: FileBarChart,    label: 'Rapports',        to: '/dashboard/ministere/rapports' },
 ]
 
 export default function DashboardMinistere() {
+  const location = useLocation()
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
+  const isOverview = location.pathname.replace(/\/+$/, '') === '/dashboard/ministere'
 
   useEffect(() => {
     axios.get('/api/DashboardMinister/')
@@ -25,6 +31,10 @@ export default function DashboardMinistere() {
       .catch(console.error)
       .finally(() => setLoading(false))
   }, [])
+
+  if (!isOverview) {
+    return <AppShell sidebarItems={NAV_ITEMS}><MinisterSection /></AppShell>
+  }
 
   if (loading) {
     return (
@@ -60,11 +70,13 @@ export default function DashboardMinistere() {
           <p className="text-sm text-gray-500 mt-0.5">Statistiques agricoles — lecture seule</p>
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+          <KpiCard value={counts.diagnostics} label="Diagnostics" />
           <KpiCard value={counts.champs?.toLocaleString()} label="Champs nationaux" />
           <KpiCard value={counts.plantes?.toLocaleString()} label="Plantes enregistrées" />
           <KpiCard value={agriculteurs} label="Agriculteurs actifs" />
           <KpiCard value={counts.etude_sol} label="Études de sol" />
+          <KpiCard value={counts.maladies} label="Maladies détectées" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
