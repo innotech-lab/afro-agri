@@ -3,7 +3,7 @@ from champs.models import Champ
 
 
 class EtudeSol(models.Model):
-    id_etude = models.AutoField(primary_key=True) # Nommé id_etude en DB
+    id_etude = models.AutoField(primary_key=True, db_column='id_etude_sol') # Nommé id_etude en DB
     id_champ = models.ForeignKey(Champ, db_column='id_champ', on_delete=models.CASCADE)
     image = models.ImageField(upload_to='soil_studies/', db_column='image_sol', null=True, blank=True)
     date_analyse = models.DateField(db_column='date_analyse') # Nommé date_analyse en DB

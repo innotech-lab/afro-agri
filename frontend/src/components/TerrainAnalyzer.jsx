@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import axios from 'axios'
 import { Upload, ImagePlus, Loader2, CheckCircle, AlertTriangle, XCircle, RefreshCw, Camera, X, Circle } from 'lucide-react'
 
@@ -67,19 +67,72 @@ export default function TerrainAnalyzer() {
     handleFile(e.dataTransfer.files[0])
   }
 
+  const [coords, setCoords] = useState(null)
+
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setCoords({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude
+          })
+        },
+        (err) => console.log('GPS init error:', err)
+      )
+    }
+  }, [])
+
   const handleAnalyse = async () => {
     if (!image) return
     setLoading(true)
     setError('')
+    
+    let lat = coords?.latitude
+    let lon = coords?.longitude
+
+    if (!lat || !lon) {
+      try {
+        const pos = await new Promise((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 })
+        })
+        lat = pos.coords.latitude
+        lon = pos.coords.longitude
+        setCoords({ latitude: lat, longitude: lon })
+      } catch (e) {
+        console.warn('Could not get geolocation dynamically', e)
+      }
+    }
+
     try {
       const form = new FormData()
       form.append('image', image)
       form.append('nom_plante', 'terrain')
       form.append('stade', 'analyse_achat')
+      if (lat !== undefined && lon !== undefined) {
+        form.append('latitude', lat)
+        form.append('longitude', lon)
+      }
+      
       const { data } = await axios.post('/api/diagnostic/analyser/', form, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
-      setResult(data.details)
+      
+      const ia = data.ia_analysis || {}
+      const suggestions = data.suggestions_ia || {}
+      
+      const formattedResult = {
+        est_saine: ia.est_saine !== undefined ? ia.est_saine : suggestions.est_saine,
+        confiance_pct: `${ia.confiance !== undefined ? ia.confiance : (suggestions.confiance || 0)}%`,
+        maladie: ia.maladie || suggestions.maladie_suspecte,
+        plante_detectee: ia.plante || suggestions.plante_detectee,
+        traitement: ia.traitement || suggestions.traitement_suggere,
+        source_open_source: ia.github || suggestions.source || {},
+        latitude: data.latitude !== undefined ? data.latitude : lat,
+        longitude: data.longitude !== undefined ? data.longitude : lon
+      }
+      
+      setResult(formattedResult)
     } catch (err) {
       setError(err.response?.data?.error ?? 'Erreur lors de l\'analyse. Vérifiez que le backend est lancé.')
     } finally {
@@ -316,6 +369,30 @@ export default function TerrainAnalyzer() {
               )}
             </div>
           </div>
+
+          {/* GPS Coordinates & Map */}
+          {result.latitude !== undefined && result.longitude !== undefined && (
+            <div className="bg-white dark:bg-terra-dark border border-terra-border dark:border-terra-forest rounded-xl p-4 flex flex-col gap-3">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-gray-500 font-semibold mb-1">
+                  Coordonnées GPS réelles
+                </p>
+                <p className="font-bold text-terra-dark dark:text-[#e8f5e4] text-sm">
+                  {result.latitude.toFixed(6)}, {result.longitude.toFixed(6)}
+                </p>
+              </div>
+              <div className="w-full h-48 rounded-lg overflow-hidden border border-gray-200">
+                <iframe
+                  width="100%"
+                  height="100%"
+                  frameBorder="0"
+                  style={{ border: 0 }}
+                  src={`https://maps.google.com/maps?q=${result.latitude},${result.longitude}&z=13&output=embed`}
+                  allowFullScreen
+                />
+              </div>
+            </div>
+          )}
 
           {/* Source */}
           {result.source_open_source?.url && (

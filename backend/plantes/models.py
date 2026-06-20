@@ -9,7 +9,7 @@ class Plante(models.Model):
     date_plantation = models.DateField()
     id_champ = models.ForeignKey(Champ, db_column='id_champ', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now=True)
-    updated_at = models.DateTimeField(null=True, blank=True, db_column='update_at')
+    updated_at = models.DateTimeField(auto_now=True, db_column='updated_at')
 
     class Meta:
         db_table = 'plantes'

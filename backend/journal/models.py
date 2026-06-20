@@ -16,7 +16,7 @@ class JournalPlante(models.Model):
     longitude = models.FloatField()
     latitude = models.FloatField()
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = 'journal_plante'

@@ -73,6 +73,15 @@ class DiagnosticImageView(APIView):
         nom_plante = request.data.get('nom_plante', 'plante inconnue')
         stade = request.data.get('stade', 'non renseigne')
         id_champ_req = request.data.get('id_champ')
+        
+        latitude = request.data.get('latitude', None)
+        longitude = request.data.get('longitude', None)
+        try:
+            latitude = float(latitude) if latitude is not None else None
+            longitude = float(longitude) if longitude is not None else None
+        except (ValueError, TypeError):
+            latitude, longitude = None, None
+
         today = datetime.date.today()
         session = str(uuid.uuid4())[:20]
 
@@ -94,7 +103,10 @@ class DiagnosticImageView(APIView):
                 
                 if not champ:
                     champ = Champ.objects.create(
-                        superficie=1.0, source_eau='pluie', longitude=0.0, latitude=0.0
+                        superficie=1.0,
+                        source_eau='pluie',
+                        longitude=longitude if longitude is not None else 0.0,
+                        latitude=latitude if latitude is not None else 0.0
                     )
 
                 # 3. Plante
@@ -111,14 +123,14 @@ class DiagnosticImageView(APIView):
                 journal = JournalPlante.objects.create(
                     id_plante=plante,
                     date_observation=today,
-                    stade_croissance=stade,
-                    symptomes=resultat['classe_complete'],
-                    ravageur_suspecte='inconnu',
+                    stade_croissance=resultat.get('stade_croissance', stade),
+                    symptomes=resultat.get('symptomes', resultat['classe_complete']),
+                    ravageur_suspecte=resultat.get('ravageur_suspecte', 'inconnu'),
                     maladie_suspecte=resultat['maladie_detectee'],
                     id_user=user,
                     session_uuid=session,
-                    longitude=0.0,
-                    latitude=0.0
+                    longitude=longitude if longitude is not None else 0.0,
+                    latitude=latitude if latitude is not None else 0.0
                 )
 
                 # 5. Diagnostic
@@ -128,14 +140,34 @@ class DiagnosticImageView(APIView):
                     image=image,
                     maladie_detectee=resultat['maladie_detectee'],
                     confiance=resultat['confiance'],
-                    ravageur_detecte='',
+                    ravageur_detecte=resultat.get('ravageur_suspecte', ''),
                     traitement_suggere=resultat['traitement_suggere'],
                     source_github=resultat['github'].get('url', '')
                 )
 
             return Response({
+                'success': True,
                 'id_journal': journal.id_journal,
                 'id_diagnostic': diagnostic.id_diagnostic,
+                'latitude': latitude if latitude is not None else 0.0,
+                'longitude': longitude if longitude is not None else 0.0,
+                'journal': {
+                    'date_observation': str(journal.date_observation),
+                    'stade_croissance': journal.stade_croissance,
+                    'symptomes': journal.symptomes,
+                    'ravageur_suspecte': journal.ravageur_suspecte,
+                    'maladie_suspecte': journal.maladie_suspecte,
+                    'latitude': journal.latitude,
+                    'longitude': journal.longitude,
+                },
+                'ia_analysis': {
+                    'plante': resultat['plante_detectee'],
+                    'maladie': resultat['maladie_detectee'],
+                    'traitement': resultat['traitement_suggere'],
+                    'confiance': resultat['confiance'],
+                    'est_saine': resultat['est_saine'],
+                    'github': resultat['github'],
+                },
                 'suggestions_ia': {
                     'plante_detectee': resultat['plante_detectee'],
                     'maladie_suspecte': resultat['maladie_detectee'],
