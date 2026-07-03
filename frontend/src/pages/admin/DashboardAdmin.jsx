@@ -27,6 +27,12 @@ const TYPE_COLORS = {
   agriculteur: 'bg-terra-forest text-terra-light',
   minister:    'bg-blue-900 text-blue-300',
   admin:       'bg-red-900 text-red-300',
+  particulier: 'bg-yellow-800 text-yellow-200',
+}
+
+function formatDate(iso) {
+  if (!iso) return '—'
+  return new Date(iso).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
 export default function DashboardAdmin() {
@@ -43,7 +49,10 @@ export default function DashboardAdmin() {
     ]).then(([d, u]) => {
       setData(d.data)
       const raw = u.data?.results ?? u.data ?? []
-      setUsers(Array.isArray(raw) ? raw.slice(0, 6) : [])
+      const sorted = Array.isArray(raw)
+        ? [...raw].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 12)
+        : []
+      setUsers(sorted)
     }).catch(console.error)
     .finally(() => setLoading(false))
   }, [])
@@ -118,18 +127,26 @@ export default function DashboardAdmin() {
                 return (
                   <div
                     key={u.id_user}
-                    className="flex items-center gap-3 p-3 bg-terra-bg dark:bg-terra-forest rounded-lg"
+                    className="flex items-start gap-3 p-3 bg-terra-bg dark:bg-terra-forest/40 rounded-lg border border-terra-border dark:border-terra-forest"
                   >
-                    <div className="w-9 h-9 rounded-full bg-terra-forest dark:bg-terra-dark flex items-center justify-center text-terra-light text-sm font-bold flex-shrink-0">
+                    <div className="w-10 h-10 rounded-full bg-terra-forest dark:bg-terra-dark flex items-center justify-center text-terra-light text-sm font-bold flex-shrink-0">
                       {initials}
                     </div>
-                    <div className="min-w-0">
-                      <div className="text-sm font-semibold text-terra-dark dark:text-[#e8f5e4] truncate">
-                        {u.prenom} {u.nom}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm font-semibold text-terra-dark dark:text-[#e8f5e4] truncate">
+                          {u.prenom} {u.nom}
+                        </span>
+                        <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full flex-shrink-0 ${colorClass}`}>
+                          {u.id_type?.type ?? '—'}
+                        </span>
                       </div>
-                      <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-full ${colorClass}`}>
-                        {u.id_type?.type ?? role}
-                      </span>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
+                        {u.email}
+                      </div>
+                      <div className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                        Inscrit le {formatDate(u.created_at)}
+                      </div>
                     </div>
                   </div>
                 )

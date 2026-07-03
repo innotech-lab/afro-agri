@@ -51,11 +51,12 @@ class MinisterCannotModify(BasePermission):
 
 
 class IsAdminOnly(BasePermission):
-    """Allow only users whose session id_type is Admin."""
+    """Allow only users whose session or X-User-Type header is admin."""
 
     def has_permission(self, request, view):
-        if not hasattr(request, 'session'):
-            return False
-
-        id_type = request.session.get('id_type')
+        id_type = ''
+        if hasattr(request, 'session'):
+            id_type = request.session.get('id_type', '')
+        if not id_type:
+            id_type = request.headers.get('X-User-Type', '')
         return str(id_type).strip().lower() == 'admin'

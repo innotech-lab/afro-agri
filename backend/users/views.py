@@ -9,6 +9,18 @@ from django.contrib.auth.hashers import check_password
 from django.db.models import Count, Avg
 
 
+def get_session_identity(request):
+    """Retourne (user_id, id_type) depuis la session Django ou les en-têtes X-User-*."""
+    if hasattr(request, 'session'):
+        id_type = request.session.get('id_type')
+        user_id = request.session.get('user_id')
+        if id_type:
+            return user_id, id_type
+    id_type = request.headers.get('X-User-Type', '')
+    user_id = request.headers.get('X-User-Id', '')
+    return user_id or None, id_type or None
+
+
 class RegisterView(APIView):
     """Register a new particulier account."""
 
@@ -85,8 +97,7 @@ class DashboardParticulierView(APIView):
     """Dashboard for particulier users — their own diagnostic history."""
 
     def get(self, request):
-        id_type = request.session.get('id_type') if hasattr(request, 'session') else None
-        user_id = request.session.get('user_id') if hasattr(request, 'session') else None
+        user_id, id_type = get_session_identity(request)
 
         if not id_type or str(id_type).strip().lower() != 'particulier':
             return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
@@ -128,13 +139,10 @@ class DashboardParticulierView(APIView):
 
 
 class DashboardMinisterView(APIView):
-    """Read-only dashboard for Minister users. Requires session login.
-
-    Returns basic counts for key models.
-    """
+    """Read-only dashboard for Minister users."""
 
     def get(self, request):
-        id_type = request.session.get('id_type') if hasattr(request, 'session') else None
+        _, id_type = get_session_identity(request)
         if not id_type or str(id_type).strip().lower() != 'minister':
             return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
 
@@ -209,7 +217,7 @@ class DashboardAdminView(APIView):
     """Full admin dashboard with modification access in the backend."""
 
     def get(self, request):
-        id_type = request.session.get('id_type') if hasattr(request, 'session') else None
+        _, id_type = get_session_identity(request)
         if not id_type or str(id_type).strip().lower() != 'admin':
             return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
 
