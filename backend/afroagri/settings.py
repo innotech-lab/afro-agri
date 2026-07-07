@@ -22,10 +22,12 @@ INSTALLED_APPS = [
     'champs',
     'plantes',
     'journal',
-    'etude_sol',
     'type_user',
     'diagnostic',
     'localisation',
+    'subscriptions',
+    'payments',
+    'transactions',
 ]
 
 MIDDLEWARE = [

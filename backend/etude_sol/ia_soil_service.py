@@ -33,13 +33,16 @@ def analyser_sol(data, image_file=None):
             return default
 
     try:
-        azote = safe_float(data.get('azote'), 0)
-        phosphore = safe_float(data.get('phosphore'), 0)
-        potassium = safe_float(data.get('potassium'), 0)
-        ph = safe_float(data.get('ph_sol'), 7.0)
-        matiere_org = safe_float(data.get('matiere_organique'), 2.0)
+        azote = safe_float(data.get('azote'), vsa['azote_estime'] if vsa else 0)
+        phosphore = safe_float(data.get('phosphore'), vsa['phosphore_estime'] if vsa else 0)
+        potassium = safe_float(data.get('potassium'), vsa['potassium_estime'] if vsa else 0)
+        ph = safe_float(data.get('ph_sol'), vsa['ph_estime'] if vsa else 7.0)
+        matiere_org = safe_float(data.get('matiere_organique'), vsa['matiere_org_estimee'] if vsa else 2.0)
     except Exception:
         return {'error': 'Paramètres invalides'}
+
+    humidite = data.get('humidite') or (vsa['humidite_visuelle'] if vsa else 'N/A')
+    type_sol = vsa['texture_detectee'] if vsa else data.get('type_sol', 'Inconnu')
     
     recommandations = []
     
@@ -62,8 +65,14 @@ def analyser_sol(data, image_file=None):
     fertilite = "Haute" if score > 20 else "Moyenne" if score > 10 else "Faible"
 
     return {
+        'ph_sol': str(ph),
+        'azote': str(azote),
+        'phosphore': str(phosphore),
+        'potassium': str(potassium),
+        'matiere_organique': str(matiere_org),
+        'humidite': str(humidite),
+        'type_sol': type_sol,
         'fertilite': fertilite,
         'rapport_analyse': " | ".join(recommandations),
         'vsa': vsa,
-        'type_sol': vsa['texture_detectee'] if vsa else data.get('type_sol', 'Inconnu')
     }

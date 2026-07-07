@@ -5,6 +5,7 @@ from champs.models import Champ
 class EtudeSol(models.Model):
     id_etude_sol = models.AutoField(primary_key=True, db_column='id_etude_sol')
     id_champ = models.ForeignKey(Champ, db_column='id_champ', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='soil_studies/', null=True, blank=True)
     date_analyse = models.DateField(db_column='date')
     ph_sol = models.CharField(max_length=100, db_column='py_sol')
     matiere_organique = models.CharField(max_length=100)

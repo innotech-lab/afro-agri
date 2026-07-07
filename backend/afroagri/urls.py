@@ -17,9 +17,10 @@ urlpatterns = [
     path('api/champs/', include('champs.urls')),
     path('api/plantes/', include('plantes.urls')),
     path('api/journal/', include('journal.urls')),
-    path('api/etude-sol/', include('etude_sol.urls')),
     path('api/diagnostic/', include('diagnostic.urls')),
     path('api/localisation/', include('localisation.urls')),
+    path('api/subscriptions/', include('subscriptions.urls')),
+    path('api/payments/', include('payments.urls')),
+    path('api/transactions/', include('transactions.urls')),
     path('diagnostic/', TemplateView.as_view(template_name='diagnostic.html')),
-    path('etude-sol/', TemplateView.as_view(template_name='etude_sol.html')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

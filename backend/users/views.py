@@ -150,7 +150,6 @@ class DashboardMinisterView(APIView):
         from champs.models import Champ
         from plantes.models import Plante
         from journal.models import JournalPlante
-        from etude_sol.models import EtudeSol
         from diagnostic.models import DiagnosticResult
         from users.models import User
 
@@ -158,7 +157,6 @@ class DashboardMinisterView(APIView):
         champs_qs = Champ.objects.all()
         plantes_qs = Plante.objects.all()
         journal_qs = JournalPlante.objects.all()
-        etude_qs = EtudeSol.objects.all()
         users_qs = User.objects.all()
         diagnostics_qs = DiagnosticResult.objects.all()
 
@@ -172,9 +170,6 @@ class DashboardMinisterView(APIView):
         journal_by_stade = list(journal_qs.values('stade_croissance').annotate(count=Count('id_journal')))
         recent_journal = list(journal_qs.order_by('-date_observation')[:5].values('id_journal','id_plante_id','date_observation','stade_croissance','symptomes'))
 
-        etude_by_type = list(etude_qs.values('type_sol').annotate(count=Count('id_etude_sol')))
-        etude_by_fert = list(etude_qs.values('fertilite').annotate(count=Count('id_etude_sol')))
-
         users_by_type = list(users_qs.values('id_type__type').annotate(count=Count('id_user')))
 
         data = {
@@ -183,7 +178,6 @@ class DashboardMinisterView(APIView):
                 'champs': champs_qs.count(),
                 'plantes': plantes_qs.count(),
                 'journal': journal_qs.count(),
-                'etude_sol': etude_qs.count(),
                 'users': users_qs.count(),
                 'diagnostics': diagnostics_qs.count(),
                 'maladies': diagnostics_qs.exclude(maladie_detectee='').values('maladie_detectee').distinct().count(),
@@ -200,10 +194,6 @@ class DashboardMinisterView(APIView):
             'journal': {
                 'by_stade': journal_by_stade,
                 'recent': recent_journal,
-            },
-            'etude_sol': {
-                'by_type_sol': etude_by_type,
-                'by_fertilite': etude_by_fert,
             },
             'users': {
                 'by_type': users_by_type,
@@ -224,14 +214,12 @@ class DashboardAdminView(APIView):
         from champs.models import Champ
         from plantes.models import Plante
         from journal.models import JournalPlante
-        from etude_sol.models import EtudeSol
         from diagnostic.models import DiagnosticResult
         from users.models import User
 
         champs_qs = Champ.objects.all()
         plantes_qs = Plante.objects.all()
         journal_qs = JournalPlante.objects.all()
-        etude_qs = EtudeSol.objects.all()
         users_qs = User.objects.all()
         diagnostics_qs = DiagnosticResult.objects.all()
 
@@ -244,9 +232,6 @@ class DashboardAdminView(APIView):
         journal_by_stade = list(journal_qs.values('stade_croissance').annotate(count=Count('id_journal')))
         recent_journal = list(journal_qs.order_by('-date_observation')[:10].values('id_journal','id_plante_id','date_observation','stade_croissance','symptomes'))
 
-        etude_by_type = list(etude_qs.values('type_sol').annotate(count=Count('id_etude_sol')))
-        etude_by_fert = list(etude_qs.values('fertilite').annotate(count=Count('id_etude_sol')))
-
         users_by_type = list(users_qs.values('id_type__type').annotate(count=Count('id_user')))
 
         data = {
@@ -255,7 +240,6 @@ class DashboardAdminView(APIView):
                 'champs': champs_qs.count(),
                 'plantes': plantes_qs.count(),
                 'journal': journal_qs.count(),
-                'etude_sol': etude_qs.count(),
                 'users': users_qs.count(),
                 'diagnostics': diagnostics_qs.count(),
                 'maladies': diagnostics_qs.exclude(maladie_detectee='').values('maladie_detectee').distinct().count(),
@@ -272,10 +256,6 @@ class DashboardAdminView(APIView):
             'journal': {
                 'by_stade': journal_by_stade,
                 'recent': recent_journal,
-            },
-            'etude_sol': {
-                'by_type_sol': etude_by_type,
-                'by_fertilite': etude_by_fert,
             },
             'users': {
                 'by_type': users_by_type,

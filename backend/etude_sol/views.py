@@ -119,26 +119,25 @@ class AnalyserEtudeSolView(APIView):
 
         # 3. Sauvegarde dans la table etude_sol
         try:
-            etude = EtudeSol.objects.create(
-                id_champ=champ,
-                image=image,
-                date_analyse=datetime.date.today(),
-                ph_sol=str(data.get('ph_sol', '7.0')),
-                matiere_organique=str(data.get('matiere_organique', 'N/A')),
-                azote=str(data.get('azote', '0')),
-                phosphore=str(data.get('phosphore', '0')),
-                potassium=str(data.get('potassium', '0')),
-                humidite=str(data.get('humidite', '0')),
-                type_sol=str(analyse['type_sol']),
-                fertilite=str(analyse['fertilite']),
-                rapport_analyse=str(analyse['rapport_analyse']) # TEXT field, pas de troncature nécessaire
-            )
-            print(f"DEBUG: Étude créée avec succès! ID Étude = {etude.id_etude}")
+            if image:
+                champ.image = image
+            champ.date_analyse = datetime.date.today()
+            champ.ph_sol = str(analyse.get('ph_sol', data.get('ph_sol', '7.0')))
+            champ.matiere_organique = str(analyse.get('matiere_organique', data.get('matiere_organique', 'N/A')))
+            champ.azote = str(analyse.get('azote', data.get('azote', '0')))
+            champ.phosphore = str(analyse.get('phosphore', data.get('phosphore', '0')))
+            champ.potassium = str(analyse.get('potassium', data.get('potassium', '0')))
+            champ.humidite = str(analyse.get('humidite', data.get('humidite', '0')))
+            champ.type_sol = str(analyse['type_sol'])
+            champ.fertilite = str(analyse['fertilite'])
+            champ.rapport_analyse = str(analyse['rapport_analyse'])
+            champ.save()
+            print(f"DEBUG: Champ mis à jour avec succès! ID Champ = {champ.id_champ}")
             
             return Response({
-                'id_etude_sol': etude.id_etude,
+                'id_champ': champ.id_champ,
                 'analyse_ia': analyse
-            }, status=status.HTTP_201_CREATED)
+            }, status=status.HTTP_200_OK)
 
         except Exception as e:
             print(f"ERREUR CRITIQUE SAUVEGARDE: {str(e)}")

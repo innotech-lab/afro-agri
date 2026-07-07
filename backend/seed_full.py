@@ -18,7 +18,6 @@ from champs.models import Champ
 from plantes.models import Plante
 from journal.models import JournalPlante
 from diagnostic.models import DiagnosticResult
-from etude_sol.models import EtudeSol
 from django.contrib.auth.hashers import make_password
 
 random.seed(42)
@@ -258,40 +257,6 @@ for entry, is_sick in journal_created:
 
 print(f"✓ Diagnostics: {diag_count}")
 
-# ─── Études de sol ────────────────────────────────────────────────────────────
-
-etude_count = 0
-
-for champ, zone, owner in champs_created:
-    n_etudes = random.randint(1, 3)
-    for _ in range(n_etudes):
-        ph = round(random.uniform(4.5, 8.2), 1)
-        fertilite = (
-            "Très bonne" if ph >= 6.0 and ph <= 7.0
-            else "Bonne"   if ph >= 5.5 and ph <= 7.5
-            else "Moyenne" if ph >= 5.0
-            else "Faible"
-        )
-        EtudeSol.objects.create(
-            id_champ=champ,
-            date_analyse=rand_date(2023, 2025),
-            ph_sol=str(ph),
-            matiere_organique=f"{round(random.uniform(0.8, 5.5), 1)}%",
-            azote=f"{round(random.uniform(0.05, 0.35), 2)}%",
-            phosphore=f"{round(random.uniform(5, 60), 0):.0f} mg/kg",
-            potassium=f"{round(random.uniform(50, 400), 0):.0f} mg/kg",
-            humidite=f"{round(random.uniform(15, 55), 1)}%",
-            type_sol=random.choice(TYPES_SOL),
-            fertilite=fertilite,
-            rapport_analyse=(
-                f"Analyse du champ {champ.id_champ}. pH={ph}, sol {random.choice(TYPES_SOL).lower()}. "
-                f"Fertilité : {fertilite}. "
-                f"Recommandation : {'Apport de compost et chaux agricole.' if ph < 5.5 else 'Maintenir les bonnes pratiques de fertilisation.'}"
-            ),
-        )
-        etude_count += 1
-
-print(f"✓ Études de sol: {etude_count}")
 
 # ─── Summary ─────────────────────────────────────────────────────────────────
 
@@ -301,5 +266,4 @@ print(f"  Champs        : {Champ.objects.count()}")
 print(f"  Plantes       : {Plante.objects.count()}")
 print(f"  Journal       : {JournalPlante.objects.count()}")
 print(f"  Diagnostics   : {DiagnosticResult.objects.count()}")
-print(f"  Études de sol : {EtudeSol.objects.count()}")
 print("\n✅ Seed terminé avec succès !")
