@@ -25,9 +25,7 @@ INSTALLED_APPS = [
     'type_user',
     'diagnostic',
     'localisation',
-    'subscriptions',
-    'payments',
-    'transactions',
+    'paiement',
 ]
 
 MIDDLEWARE = [
@@ -65,6 +63,17 @@ WSGI_APPLICATION = 'afroagri.wsgi.application'
 
 DATABASES = {
     'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'afroagri',
+        'USER': 'root',
+        'PASSWORD': '',
+        'HOST': 'localhost',
+        'PORT': '3306',
+        'OPTIONS': {
+            'charset': 'utf8mb4',
+        },
+    },
+    'sqlite': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
